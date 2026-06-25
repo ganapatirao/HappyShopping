@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShoppingBag, Heart, User, Settings, Package, LogOut, Truck, CreditCard } from 'lucide-react';
+import { ShoppingBag, Heart, User, Settings, Package, LogOut, Truck, CreditCard, MapPin, Edit, Plus, X, Bell, Shield, Globe } from 'lucide-react';
 
 const UserDashboard = () => {
   const { user, logout, isAuthenticated, loading } = useAuth();
@@ -9,6 +9,31 @@ const UserDashboard = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [orders, setOrders] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [addressForm, setAddressForm] = useState({
+    fullName: '',
+    phone: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+    isDefault: false
+  });
+  const [paymentForm, setPaymentForm] = useState({
+    cardNumber: '',
+    cardHolder: '',
+    expiryMonth: '',
+    expiryYear: '',
+    cvv: '',
+    isDefault: false
+  });
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -26,6 +51,82 @@ const UserDashboard = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleOpenAddressModal = (address = null) => {
+    if (address) {
+      setEditingAddress(address);
+      setAddressForm(address);
+    } else {
+      setEditingAddress(null);
+      setAddressForm({
+        fullName: user?.fullName || '',
+        phone: user?.phoneNumber || '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: '',
+        isDefault: false
+      });
+    }
+    setShowAddressModal(true);
+  };
+
+  const handleCloseAddressModal = () => {
+    setShowAddressModal(false);
+    setEditingAddress(null);
+    setAddressForm({
+      fullName: '',
+      phone: '',
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: '',
+      isDefault: false
+    });
+  };
+
+  const handleSaveAddress = () => {
+    if (editingAddress) {
+      setAddresses(addresses.map(a => a.id === editingAddress.id ? { ...addressForm, id: editingAddress.id } : a));
+    } else {
+      setAddresses([...addresses, { ...addressForm, id: Date.now().toString() }]);
+    }
+    handleCloseAddressModal();
+    alert(editingAddress ? 'Address updated successfully!' : 'Address added successfully!');
+  };
+
+  const handleDeleteAddress = (id) => {
+    if (confirm('Are you sure you want to delete this address?')) {
+      setAddresses(addresses.filter(a => a.id !== id));
+      alert('Address deleted successfully!');
+    }
+  };
+
+  const handleOpenPaymentModal = () => {
+    setShowPaymentModal(true);
+  };
+
+  const handleClosePaymentModal = () => {
+    setShowPaymentModal(false);
+    setPaymentForm({
+      cardNumber: '',
+      cardHolder: '',
+      expiryMonth: '',
+      expiryYear: '',
+      cvv: '',
+      isDefault: false
+    });
+  };
+
+  const handleSavePayment = () => {
+    setPaymentMethods([...paymentMethods, { ...paymentForm, id: Date.now().toString(), last4: paymentForm.cardNumber.slice(-4) }]);
+    handleClosePaymentModal();
+    alert('Payment method added successfully!');
   };
 
   if (loading) {
@@ -117,48 +218,48 @@ const UserDashboard = () => {
             {activeTab === 'overview' && (
               <div className="space-y-4 sm:space-y-6">
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Total Orders</p>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-800">{user?.orderCount || 0}</p>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 md:p-6 border border-blue-200">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="bg-blue-600 p-1.5 sm:p-2 md:p-3 rounded-lg">
+                        <ShoppingBag size={14} sm:size={16} md:size={20} className="text-white" />
                       </div>
-                      <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
-                        <ShoppingBag size={20} className="sm:size-24 text-blue-600" />
+                      <div>
+                        <p className="text-xs sm:text-sm md:text-base text-gray-600">Total Orders</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{user?.orderCount || 0}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Total Spent</p>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-800">₹{(user?.totalSpent || 0).toLocaleString()}</p>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 md:p-6 border border-green-200">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="bg-green-600 p-1.5 sm:p-2 md:p-3 rounded-lg">
+                        <Package size={14} sm:size={16} md:size={20} className="text-white" />
                       </div>
-                      <div className="bg-green-100 p-2 sm:p-3 rounded-full">
-                        <Package size={20} className="sm:size-24 text-green-600" />
+                      <div>
+                        <p className="text-xs sm:text-sm md:text-base text-gray-600">Total Spent</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">₹{(user?.totalSpent || 0).toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Wishlist</p>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-800">{user?.wishlist?.length || 0}</p>
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 sm:p-4 md:p-6 border border-red-200">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="bg-red-600 p-1.5 sm:p-2 md:p-3 rounded-lg">
+                        <Heart size={14} sm:size={16} md:size={20} className="text-white" />
                       </div>
-                      <div className="bg-red-100 p-2 sm:p-3 rounded-full">
-                        <Heart size={20} className="sm:size-24 text-red-600" />
+                      <div>
+                        <p className="text-xs sm:text-sm md:text-base text-gray-600">Wishlist</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{wishlist.length}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Membership</p>
-                        <p className="text-base sm:text-lg font-bold text-gray-800">{user?.isPremier ? 'Premier' : 'Normal'}</p>
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 sm:p-4 md:p-6 border border-yellow-200">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="bg-yellow-600 p-1.5 sm:p-2 md:p-3 rounded-lg">
+                        <User size={14} sm:size={16} md:size={20} className="text-white" />
                       </div>
-                      <div className="bg-yellow-100 p-2 sm:p-3 rounded-full">
-                        <User size={20} className="sm:size-24 text-yellow-600" />
+                      <div>
+                        <p className="text-xs sm:text-sm md:text-base text-gray-600">Membership</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{user?.isPremier ? 'Premier' : 'Normal'}</p>
                       </div>
                     </div>
                   </div>
@@ -220,27 +321,96 @@ const UserDashboard = () => {
 
             {activeTab === 'addresses' && (
               <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Saved Addresses</h2>
-                <div className="text-center py-8 sm:py-12 text-gray-500">
-                  <Truck size={40} className="sm:size-48 mx-auto mb-4 text-gray-300" />
-                  <p className="text-sm sm:text-base">No saved addresses</p>
-                  <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold mt-2 text-sm sm:text-base">
-                    Add New Address
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800">Saved Addresses</h2>
+                  <button 
+                    onClick={() => handleOpenAddressModal()}
+                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1"
+                  >
+                    <Plus size={14} sm:size={16} />
+                    Add Address
                   </button>
                 </div>
+                {addresses.length === 0 ? (
+                  <div className="text-center py-8 sm:py-12 text-gray-500">
+                    <MapPin size={40} className="sm:size-48 mx-auto mb-4 text-gray-300" />
+                    <p className="text-sm sm:text-base">No saved addresses</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {addresses.map((address) => (
+                      <div key={address.id} className="border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <MapPin size={16} className="text-purple-600" />
+                            {address.isDefault && (
+                              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-semibold">Default</span>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => handleOpenAddressModal(address)}
+                              className="p-1 hover:bg-gray-100 rounded-lg"
+                            >
+                              <Edit size={16} className="text-blue-600" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteAddress(address.id)}
+                              className="p-1 hover:bg-gray-100 rounded-lg"
+                            >
+                              <X size={16} className="text-red-600" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="font-semibold text-gray-800 text-sm sm:text-base">{address.fullName}</p>
+                        <p className="text-gray-600 text-xs sm:text-sm">{address.phone}</p>
+                        <p className="text-gray-700 text-xs sm:text-sm mt-2">{address.addressLine1}</p>
+                        {address.addressLine2 && <p className="text-gray-700 text-xs sm:text-sm">{address.addressLine2}</p>}
+                        <p className="text-gray-600 text-xs sm:text-sm">{address.city}, {address.state} {address.zipCode}</p>
+                        <p className="text-gray-600 text-xs sm:text-sm">{address.country}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'payment' && (
               <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Payment Methods</h2>
-                <div className="text-center py-8 sm:py-12 text-gray-500">
-                  <CreditCard size={40} className="sm:size-48 mx-auto mb-4 text-gray-300" />
-                  <p className="text-sm sm:text-base">No payment methods saved</p>
-                  <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold mt-2 text-sm sm:text-base">
-                    Add Payment Method
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800">Payment Methods</h2>
+                  <button 
+                    onClick={handleOpenPaymentModal}
+                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1"
+                  >
+                    <Plus size={14} sm:size={16} />
+                    Add Card
                   </button>
                 </div>
+                {paymentMethods.length === 0 ? (
+                  <div className="text-center py-8 sm:py-12 text-gray-500">
+                    <CreditCard size={40} className="sm:size-48 mx-auto mb-4 text-gray-300" />
+                    <p className="text-sm sm:text-base">No payment methods saved</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {paymentMethods.map((method) => (
+                      <div key={method.id} className="border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <CreditCard size={16} className="text-purple-600" />
+                            {method.isDefault && (
+                              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-semibold">Default</span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="font-semibold text-gray-800 text-sm sm:text-base">•••• •••• •••• {method.last4}</p>
+                        <p className="text-gray-600 text-xs sm:text-sm">{method.cardHolder}</p>
+                        <p className="text-gray-600 text-xs sm:text-sm">Expires: {method.expiryMonth}/{method.expiryYear}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -276,6 +446,258 @@ const UserDashboard = () => {
                   <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold text-sm sm:text-base">
                     Save Changes
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Address Modal */}
+            {showAddressModal && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-2 sm:mx-0">
+                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-4 sm:p-6 rounded-t-2xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                          <MapPin size={20} sm:size={24} className="text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg sm:text-xl font-bold text-white">
+                            {editingAddress ? 'Edit Address' : 'Add Address'}
+                          </h3>
+                          <p className="text-purple-100 text-xs sm:text-sm">
+                            {editingAddress ? 'Update saved address' : 'Add new delivery address'}
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleCloseAddressModal}
+                        className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition-all"
+                      >
+                        <X size={18} sm:size={20} className="text-white" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={addressForm.fullName}
+                        onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={addressForm.phone}
+                        onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 1</label>
+                      <input
+                        type="text"
+                        value={addressForm.addressLine1}
+                        onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        placeholder="Street address, apartment, etc."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 2</label>
+                      <input
+                        type="text"
+                        value={addressForm.addressLine2}
+                        onChange={(e) => setAddressForm({ ...addressForm, addressLine2: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        placeholder="Apartment, suite, etc. (optional)"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">City</label>
+                        <input
+                          type="text"
+                          value={addressForm.city}
+                          onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">State</label>
+                        <input
+                          type="text"
+                          value={addressForm.state}
+                          onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">ZIP Code</label>
+                        <input
+                          type="text"
+                          value={addressForm.zipCode}
+                          onChange={(e) => setAddressForm({ ...addressForm, zipCode: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Country</label>
+                        <input
+                          type="text"
+                          value={addressForm.country}
+                          onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="defaultAddress"
+                        checked={addressForm.isDefault}
+                        onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
+                        className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      />
+                      <label htmlFor="defaultAddress" className="text-sm font-medium text-gray-700">Set as default address</label>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-6 border-t flex gap-3">
+                    <button
+                      onClick={handleCloseAddressModal}
+                      className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveAddress}
+                      className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+                    >
+                      {editingAddress ? 'Update' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Modal */}
+            {showPaymentModal && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-2 sm:mx-0">
+                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-4 sm:p-6 rounded-t-2xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                          <CreditCard size={20} sm:size={24} className="text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg sm:text-xl font-bold text-white">Add Payment Method</h3>
+                          <p className="text-purple-100 text-xs sm:text-sm">Add new credit or debit card</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleClosePaymentModal}
+                        className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition-all"
+                      >
+                        <X size={18} sm:size={20} className="text-white" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Card Number</label>
+                      <input
+                        type="text"
+                        value={paymentForm.cardNumber}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, cardNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        placeholder="1234 5678 9012 3456"
+                        maxLength={19}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Cardholder Name</label>
+                      <input
+                        type="text"
+                        value={paymentForm.cardHolder}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, cardHolder: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Month</label>
+                        <select
+                          value={paymentForm.expiryMonth}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, expiryMonth: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        >
+                          <option value="">MM</option>
+                          {[...Array(12)].map((_, i) => (
+                            <option key={i + 1} value={String(i + 1).padStart(2, '0')}>{String(i + 1).padStart(2, '0')}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Year</label>
+                        <select
+                          value={paymentForm.expiryYear}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, expiryYear: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        >
+                          <option value="">YY</option>
+                          {[...Array(10)].map((_, i) => (
+                            <option key={2025 + i} value={String(2025 + i)}>{2025 + i}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">CVV</label>
+                      <input
+                        type="text"
+                        value={paymentForm.cvv}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, cvv: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        placeholder="123"
+                        maxLength={4}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="defaultPayment"
+                        checked={paymentForm.isDefault}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, isDefault: e.target.checked })}
+                        className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      />
+                      <label htmlFor="defaultPayment" className="text-sm font-medium text-gray-700">Set as default payment method</label>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-6 border-t flex gap-3">
+                    <button
+                      onClick={handleClosePaymentModal}
+                      className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSavePayment}
+                      className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+                    >
+                      Add Card
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

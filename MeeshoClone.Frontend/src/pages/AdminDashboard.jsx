@@ -67,7 +67,7 @@ const AdminDashboard = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingSubCategory, setEditingSubCategory] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [editingVendor, setEditingVendor] = useState(null);
+  const [editingVendor, setEditingVendor] = useState(null);\n  const [showUserModal, setShowUserModal] = useState(false);\n  const [editingUser, setEditingUser] = useState(null);\n  const [userForm, setUserForm] = useState({\n    fullName: '',\n    email: '',\n    phoneNumber: '',\n    password: '',\n    role: 'Normal',\n    isActive: true\n  });
   
   // Form data
   const [categoryForm, setCategoryForm] = useState({
@@ -490,7 +490,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteCategory = (category) => {
+  const handleDeleteUser = (user) => {\n    setDeleteTarget({\n      type: 'user',\n      id: user.id,\n      name: user.fullName || user.email\n    });\n    setShowDeleteModal(true);\n  };\n\n  const handleDeleteCategory = (category) => {
     setDeleteTarget({
       type: 'category',
       id: category.id,
@@ -2736,6 +2736,119 @@ const AdminDashboard = () => {
             )}
 
             {/* Vendor Modal */}
+            {/* User Modal */}
+            {showUserModal && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-2 sm:mx-0">
+                  <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 p-4 sm:p-6 rounded-t-2xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                          <Users size={20} sm:size={24} className="text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg sm:text-xl font-bold text-white">
+                            {editingUser ? 'Edit User' : 'Add User'}
+                          </h3>
+                          <p className="text-blue-100 text-xs sm:text-sm">
+                            {editingUser ? 'Update user information' : 'Create new user account'}
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={handleCloseUserModal}
+                        className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition-all"
+                      >
+                        <X size={18} sm:size={20} className="text-white" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={userForm.fullName}
+                        onChange={(e) => setUserForm({ ...userForm, fullName: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        placeholder="Enter full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={userForm.email}
+                        onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={userForm.phoneNumber}
+                        onChange={(e) => setUserForm({ ...userForm, phoneNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                    {!editingUser && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                        <input
+                          type="password"
+                          value={userForm.password}
+                          onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                          placeholder="Enter password"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Role</label>
+                      <select
+                        value={userForm.role}
+                        onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="Normal">Normal User</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Vendor">Vendor</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="userActive"
+                        checked={userForm.isActive}
+                        onChange={(e) => setUserForm({ ...userForm, isActive: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="userActive" className="text-sm font-medium text-gray-700">Active</label>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 sm:p-6 border-t flex gap-3">
+                    <button
+                      onClick={handleCloseUserModal}
+                      className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveUser}
+                      className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg"
+                    >
+                      {editingUser ? 'Update' : 'Create'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {showVendorModal && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-2 sm:mx-0">
@@ -3335,14 +3448,14 @@ const AdminDashboard = () => {
                                 <Power size={16} sm:size={18} className={user.isActive ? "text-yellow-600" : "text-green-600"} />
                               </button>
                               <button 
-                                onClick={() => {
-                                  if (confirm(`Are you sure you want to delete user ${user.fullName}?`)) {
-                                    userAPI.delete(user.id).then(() => {
-                                      setUsers(users.filter(u => u.id !== user.id));
-                                      alert('User deleted successfully');
-                                    });
-                                  }
-                                }}
+                                onClick={() => handleOpenUserModal(user)}
+                                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="Edit User"
+                              >
+                                <Edit size={16} sm:size={18} className="text-blue-600" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteUser(user)}
                                 className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 title="Delete User"
                               >
