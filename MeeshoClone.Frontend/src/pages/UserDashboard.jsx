@@ -15,6 +15,7 @@ const UserDashboard = () => {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [addressForm, setAddressForm] = useState({
     fullName: '',
     phone: '',
@@ -147,29 +148,81 @@ const UserDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">My Account</h1>
-              <p className="text-purple-200">Welcome back, {user?.fullName || 'User'}!</p>
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-4 md:py-6 sticky top-0 z-40">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 rounded-lg hover:bg-white/20 transition-colors"
+              >
+                {mobileMenuOpen ? <X size={20} /> : <User size={20} />}
+              </button>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold">My Account</h1>
+                <p className="text-purple-200 text-xs sm:text-sm">Welcome back, {user?.fullName || 'User'}!</p>
+              </div>
             </div>
             <button
               onClick={handleLogout}
-              className="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-pink-100 transition-colors flex items-center gap-2"
+              className="bg-white text-purple-600 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-pink-100 transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
             >
-              <LogOut size={18} />
-              <span>Logout</span>
+              <LogOut size={14} sm:size={16} md:size={18} />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar */}
-          <aside className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 sticky top-20">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          {/* Mobile Sidebar */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden fixed inset-0 z-50 pt-16">
+              <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)}></div>
+              <div className="relative bg-white rounded-xl shadow-lg p-4 m-2 max-w-sm">
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                    {user?.fullName?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 text-sm">{user?.fullName || 'User'}</h3>
+                    <p className="text-xs text-gray-600">{user?.email || ''}</p>
+                  </div>
+                </div>
+                <nav className="space-y-2">
+                  {[
+                    { id: 'overview', label: 'Overview', icon: User },
+                    { id: 'orders', label: 'My Orders', icon: ShoppingBag },
+                    { id: 'wishlist', label: 'Wishlist', icon: Heart },
+                    { id: 'addresses', label: 'Addresses', icon: Truck },
+                    { id: 'payment', label: 'Payment Methods', icon: CreditCard },
+                    { id: 'settings', label: 'Settings', icon: Settings },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                        activeTab === tab.id
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <tab.icon size={18} />
+                      <span className="font-medium text-sm">{tab.label}</span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          )}
+
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block lg:w-64 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 sticky top-24">
               {/* User Info */}
               <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
@@ -199,14 +252,14 @@ const UserDashboard = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors ${
+                    className={`w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-3 rounded-lg transition-colors ${
                       activeTab === tab.id
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                         : 'hover:bg-gray-100 text-gray-700'
                     }`}
                   >
-                    <tab.icon size={18} className="sm:size-20" />
-                    <span className="font-medium text-sm sm:text-base">{tab.label}</span>
+                    <tab.icon size={16} sm:size={18} md:size={20} />
+                    <span className="font-medium text-xs sm:text-sm md:text-base">{tab.label}</span>
                   </button>
                 ))}
               </nav>
@@ -320,12 +373,12 @@ const UserDashboard = () => {
             )}
 
             {activeTab === 'addresses' && (
-              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-800">Saved Addresses</h2>
+              <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+                  <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Saved Addresses</h2>
                   <button 
                     onClick={() => handleOpenAddressModal()}
-                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1"
+                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1 w-full sm:w-auto justify-center"
                   >
                     <Plus size={14} sm:size={16} />
                     Add Address
@@ -333,36 +386,36 @@ const UserDashboard = () => {
                 </div>
                 {addresses.length === 0 ? (
                   <div className="text-center py-8 sm:py-12 text-gray-500">
-                    <MapPin size={40} className="sm:size-48 mx-auto mb-4 text-gray-300" />
+                    <MapPin size={32} sm:size={40} className="mx-auto mb-4 text-gray-300" />
                     <p className="text-sm sm:text-base">No saved addresses</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {addresses.map((address) => (
-                      <div key={address.id} className="border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-colors">
+                      <div key={address.id} className="border-2 border-gray-200 rounded-xl p-3 sm:p-4 hover:border-purple-300 transition-colors">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex items-center gap-2">
-                            <MapPin size={16} className="text-purple-600" />
+                            <MapPin size={14} sm:size={16} className="text-purple-600" />
                             {address.isDefault && (
-                              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-semibold">Default</span>
+                              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-semibold">Default</span>
                             )}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1 sm:gap-2">
                             <button 
                               onClick={() => handleOpenAddressModal(address)}
                               className="p-1 hover:bg-gray-100 rounded-lg"
                             >
-                              <Edit size={16} className="text-blue-600" />
+                              <Edit size={14} sm:size={16} className="text-blue-600" />
                             </button>
                             <button 
                               onClick={() => handleDeleteAddress(address.id)}
                               className="p-1 hover:bg-gray-100 rounded-lg"
                             >
-                              <X size={16} className="text-red-600" />
+                              <X size={14} sm:size={16} className="text-red-600" />
                             </button>
                           </div>
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm sm:text-base">{address.fullName}</p>
+                        <p className="font-semibold text-gray-800 text-xs sm:text-sm md:text-base">{address.fullName}</p>
                         <p className="text-gray-600 text-xs sm:text-sm">{address.phone}</p>
                         <p className="text-gray-700 text-xs sm:text-sm mt-2">{address.addressLine1}</p>
                         {address.addressLine2 && <p className="text-gray-700 text-xs sm:text-sm">{address.addressLine2}</p>}
@@ -376,12 +429,12 @@ const UserDashboard = () => {
             )}
 
             {activeTab === 'payment' && (
-              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-800">Payment Methods</h2>
+              <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+                  <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Payment Methods</h2>
                   <button 
                     onClick={handleOpenPaymentModal}
-                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1"
+                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1 w-full sm:w-auto justify-center"
                   >
                     <Plus size={14} sm:size={16} />
                     Add Card
@@ -389,22 +442,22 @@ const UserDashboard = () => {
                 </div>
                 {paymentMethods.length === 0 ? (
                   <div className="text-center py-8 sm:py-12 text-gray-500">
-                    <CreditCard size={40} className="sm:size-48 mx-auto mb-4 text-gray-300" />
+                    <CreditCard size={32} sm:size={40} className="mx-auto mb-4 text-gray-300" />
                     <p className="text-sm sm:text-base">No payment methods saved</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {paymentMethods.map((method) => (
-                      <div key={method.id} className="border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-colors">
+                      <div key={method.id} className="border-2 border-gray-200 rounded-xl p-3 sm:p-4 hover:border-purple-300 transition-colors">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex items-center gap-2">
-                            <CreditCard size={16} className="text-purple-600" />
+                            <CreditCard size={14} sm:size={16} className="text-purple-600" />
                             {method.isDefault && (
-                              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-semibold">Default</span>
+                              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-semibold">Default</span>
                             )}
                           </div>
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm sm:text-base">•••• •••• •••• {method.last4}</p>
+                        <p className="font-semibold text-gray-800 text-xs sm:text-sm md:text-base">•••• •••• •••• {method.last4}</p>
                         <p className="text-gray-600 text-xs sm:text-sm">{method.cardHolder}</p>
                         <p className="text-gray-600 text-xs sm:text-sm">Expires: {method.expiryMonth}/{method.expiryYear}</p>
                       </div>
@@ -453,15 +506,15 @@ const UserDashboard = () => {
             {/* Address Modal */}
             {showAddressModal && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-2 sm:mx-0">
-                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-4 sm:p-6 rounded-t-2xl">
-                    <div className="flex items-center justify-between">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-0 sm:mx-0">
+                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-3 sm:p-4 md:p-6 rounded-t-2xl">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                          <MapPin size={20} sm:size={24} className="text-white" />
+                        <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm">
+                          <MapPin size={16} sm:size={20} md:size={24} className="text-white" />
                         </div>
                         <div>
-                          <h3 className="text-lg sm:text-xl font-bold text-white">
+                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white">
                             {editingAddress ? 'Edit Address' : 'Add Address'}
                           </h3>
                           <p className="text-purple-100 text-xs sm:text-sm">
@@ -471,89 +524,89 @@ const UserDashboard = () => {
                       </div>
                       <button 
                         onClick={handleCloseAddressModal}
-                        className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition-all"
+                        className="bg-white/20 hover:bg-white/30 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm transition-all flex-shrink-0"
                       >
-                        <X size={18} sm:size={20} className="text-white" />
+                        <X size={16} sm:size={18} md:size={20} className="text-white" />
                       </button>
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 space-y-4">
+                  <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Full Name</label>
                       <input
                         type="text"
                         value={addressForm.fullName}
                         onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
                       <input
                         type="tel"
                         value={addressForm.phone}
                         onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 1</label>
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Address Line 1</label>
                       <input
                         type="text"
                         value={addressForm.addressLine1}
                         onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         placeholder="Street address, apartment, etc."
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 2</label>
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Address Line 2</label>
                       <input
                         type="text"
                         value={addressForm.addressLine2}
                         onChange={(e) => setAddressForm({ ...addressForm, addressLine2: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         placeholder="Apartment, suite, etc. (optional)"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">City</label>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">City</label>
                         <input
                           type="text"
                           value={addressForm.city}
                           onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">State</label>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">State</label>
                         <input
                           type="text"
                           value={addressForm.state}
                           onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">ZIP Code</label>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">ZIP Code</label>
                         <input
                           type="text"
                           value={addressForm.zipCode}
                           onChange={(e) => setAddressForm({ ...addressForm, zipCode: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Country</label>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Country</label>
                         <input
                           type="text"
                           value={addressForm.country}
                           onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         />
                       </div>
                     </div>
@@ -565,20 +618,20 @@ const UserDashboard = () => {
                         onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
                         className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                       />
-                      <label htmlFor="defaultAddress" className="text-sm font-medium text-gray-700">Set as default address</label>
+                      <label htmlFor="defaultAddress" className="text-xs sm:text-sm font-medium text-gray-700">Set as default address</label>
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 border-t flex gap-3">
+                  <div className="p-3 sm:p-4 md:p-6 border-t flex gap-2 sm:gap-3">
                     <button
                       onClick={handleCloseAddressModal}
-                      className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                      className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSaveAddress}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+                      className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg text-xs sm:text-sm"
                     >
                       {editingAddress ? 'Update' : 'Save'}
                     </button>
@@ -590,56 +643,56 @@ const UserDashboard = () => {
             {/* Payment Modal */}
             {showPaymentModal && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-2 sm:mx-0">
-                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-4 sm:p-6 rounded-t-2xl">
-                    <div className="flex items-center justify-between">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-0 sm:mx-0">
+                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-3 sm:p-4 md:p-6 rounded-t-2xl">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                          <CreditCard size={20} sm:size={24} className="text-white" />
+                        <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm">
+                          <CreditCard size={16} sm:size={20} md:size={24} className="text-white" />
                         </div>
                         <div>
-                          <h3 className="text-lg sm:text-xl font-bold text-white">Add Payment Method</h3>
+                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white">Add Payment Method</h3>
                           <p className="text-purple-100 text-xs sm:text-sm">Add new credit or debit card</p>
                         </div>
                       </div>
                       <button 
                         onClick={handleClosePaymentModal}
-                        className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition-all"
+                        className="bg-white/20 hover:bg-white/30 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm transition-all flex-shrink-0"
                       >
-                        <X size={18} sm:size={20} className="text-white" />
+                        <X size={16} sm:size={18} md:size={20} className="text-white" />
                       </button>
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 space-y-4">
+                  <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Card Number</label>
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Card Number</label>
                       <input
                         type="text"
                         value={paymentForm.cardNumber}
                         onChange={(e) => setPaymentForm({ ...paymentForm, cardNumber: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         placeholder="1234 5678 9012 3456"
                         maxLength={19}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Cardholder Name</label>
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Cardholder Name</label>
                       <input
                         type="text"
                         value={paymentForm.cardHolder}
                         onChange={(e) => setPaymentForm({ ...paymentForm, cardHolder: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         placeholder="John Doe"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Month</label>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Expiry Month</label>
                         <select
                           value={paymentForm.expiryMonth}
                           onChange={(e) => setPaymentForm({ ...paymentForm, expiryMonth: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         >
                           <option value="">MM</option>
                           {[...Array(12)].map((_, i) => (
@@ -648,11 +701,11 @@ const UserDashboard = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Year</label>
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Expiry Year</label>
                         <select
                           value={paymentForm.expiryYear}
                           onChange={(e) => setPaymentForm({ ...paymentForm, expiryYear: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         >
                           <option value="">YY</option>
                           {[...Array(10)].map((_, i) => (
@@ -662,12 +715,12 @@ const UserDashboard = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">CVV</label>
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">CVV</label>
                       <input
                         type="text"
                         value={paymentForm.cvv}
                         onChange={(e) => setPaymentForm({ ...paymentForm, cvv: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-sm"
                         placeholder="123"
                         maxLength={4}
                       />
@@ -680,20 +733,20 @@ const UserDashboard = () => {
                         onChange={(e) => setPaymentForm({ ...paymentForm, isDefault: e.target.checked })}
                         className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                       />
-                      <label htmlFor="defaultPayment" className="text-sm font-medium text-gray-700">Set as default payment method</label>
+                      <label htmlFor="defaultPayment" className="text-xs sm:text-sm font-medium text-gray-700">Set as default payment method</label>
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 border-t flex gap-3">
+                  <div className="p-3 sm:p-4 md:p-6 border-t flex gap-2 sm:gap-3">
                     <button
                       onClick={handleClosePaymentModal}
-                      className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                      className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSavePayment}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+                      className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg text-xs sm:text-sm"
                     >
                       Add Card
                     </button>
