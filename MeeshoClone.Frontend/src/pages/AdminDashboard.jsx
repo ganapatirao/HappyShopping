@@ -78,7 +78,7 @@ import OrdersSection from '../components/admin/OrdersSection';
 
 import UsersSection from '../components/admin/users/UsersSection';
 
-import SiteConfiguration from '../components/admin/SiteConfiguration';
+import SiteConfiguration from '../components/admin/site-config/SiteConfiguration';
 
 import SettingsSection from '../components/admin/SettingsSection';
 
