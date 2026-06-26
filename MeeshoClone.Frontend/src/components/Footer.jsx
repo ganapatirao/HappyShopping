@@ -6,11 +6,17 @@ const Footer = () => {
   const [config, setConfig] = useState({
     footer: {
       companyName: 'Meesho',
-      description: 'Shop for the latest fashion, electronics, home products and more at the best prices.',
-      email: 'support@meesho.com',
-      phone: '+91 98765 43210',
-      address: 'Bangalore, India',
+      companyDescription: 'Shop for the latest fashion, electronics, home products and more at the best prices.',
+      socialLinks: [],
+      backgroundColor: '#1F2937',
+      backgroundColorEnd: '#111827',
+      textColor: '#FFFFFF',
+      contactFields: [],
+      sections: [],
       copyrightText: '© 2024 Meesho Clone. All rights reserved.',
+      copyrightLinks: [],
+      logo: '',
+      logoBase64: '',
     },
   });
 
@@ -30,86 +36,110 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-900 text-white mt-auto">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer style={{ background: `linear-gradient(to right, ${config.footer?.backgroundColor || '#1F2937'}, ${config.footer?.backgroundColorEnd || '#111827'})`, color: config.footer?.textColor || '#FFFFFF' }} className="mt-auto">
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4 text-pink-400">{config.footer?.companyName || 'Meesho'}</h3>
-            <p className="text-gray-400 mb-4">
-              {config.footer?.description || 'Shop for the latest fashion, electronics, home products and more at the best prices.'}
-            </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-                <Instagram size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-                <Youtube size={20} />
-              </a>
+            {config.footer?.logoBase64 ? (
+              <img src={config.footer.logoBase64} alt={config.footer?.companyName || 'Meesho'} className="h-14 mb-6 object-contain" />
+            ) : config.footer?.logo ? (
+              <img src={config.footer.logo} alt={config.footer?.companyName || 'Meesho'} className="h-14 mb-6 object-contain" />
+            ) : (
+              <h3 className="text-2xl font-bold mb-6 text-pink-400 tracking-tight">{config.footer?.companyName || 'Meesho'}</h3>
+            )}
+            <p className="text-gray-300 mb-6 leading-relaxed">{config.footer?.companyDescription || 'Shop for the latest fashion, electronics, home products and more at the best prices.'}</p>
+            
+            {/* Social Links */}
+            {config.footer?.socialLinks?.filter(link => link.isVisible).sort((a, b) => a.order - b.order).length > 0 && (
+              <div className="flex gap-4">
+                {config.footer.socialLinks.filter(link => link.isVisible).sort((a, b) => a.order - b.order).map((link, index) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-pink-400 transition-colors"
+                  >
+                    {link.iconBase64 ? (
+                      <img src={link.iconBase64} alt={link.platform} className="w-6 h-6" />
+                    ) : link.icon ? (
+                      <img src={link.icon} alt={link.platform} className="w-6 h-6" />
+                    ) : (
+                      <span className="text-xl">{link.platform}</span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Contact Fields */}
+          {config.footer?.contactFields?.filter(field => field.isVisible).sort((a, b) => a.order - b.order).length > 0 && (
+            <div>
+              <h4 className="text-lg font-semibold mb-6">Contact Us</h4>
+              <div className="space-y-4">
+                {config.footer.contactFields.filter(field => field.isVisible).sort((a, b) => a.order - b.order).map((field, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    {field.type === 'email' && <Mail className="mt-1 text-pink-400" size={20} />}
+                    {field.type === 'phone' && <Phone className="mt-1 text-pink-400" size={20} />}
+                    {field.type === 'address' && <MapPin className="mt-1 text-pink-400" size={20} />}
+                    <div>
+                      <p className="font-medium mb-1">{field.title}</p>
+                      <p className="text-gray-300 text-sm">{field.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Contact Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Careers</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Blog</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Press</a></li>
-            </ul>
-          </div>
-
-          {/* Customer Service */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Returns & Refunds</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Shipping Info</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Track Order</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">FAQs</a></li>
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-3 text-gray-400">
-                <Mail size={18} />
-                <span>{config.footer?.email || 'support@meesho.com'}</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-400">
-                <Phone size={18} />
-                <span>{config.footer?.phone || '+91 98765 43210'}</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-400">
-                <MapPin size={18} />
-                <span>{config.footer?.address || 'Bangalore, India'}</span>
-              </li>
-            </ul>
-          </div>
+          {/* Dynamic Footer Sections */}
+          {config.footer?.sections?.filter(section => section.isVisible).sort((a, b) => a.order - b.order).map((section, sectionIndex) => (
+            <div key={sectionIndex}>
+              <h4 className="text-lg font-semibold mb-6">{section.title}</h4>
+              <ul className="space-y-3">
+                {section.links?.filter(link => link.isVisible).sort((a, b) => a.order - b.order).map((link, linkIndex) => (
+                  <li key={linkIndex}>
+                    <a
+                      href={link.url}
+                      target={link.openInNewTab ? '_blank' : '_self'}
+                      rel={link.openInNewTab ? 'noopener noreferrer' : ''}
+                      className="text-gray-300 hover:text-pink-400 transition-colors flex items-center gap-2"
+                    >
+                      {link.iconBase64 ? (
+                        <img src={link.iconBase64} alt={link.text} className="w-4 h-4" />
+                      ) : link.icon ? (
+                        <img src={link.icon} alt={link.text} className="w-4 h-4" />
+                      ) : null}
+                      {link.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-8 pt-8">
+        {/* Copyright Section */}
+        <div className="border-t border-gray-700 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-400 text-sm">
-              {config.footer?.copyrightText || '© 2024 Meesho Clone. All rights reserved.'}
-            </p>
-            <div className="flex gap-6 text-sm">
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Privacy Policy</a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Terms of Service</a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">Cookie Policy</a>
-            </div>
+            <p className="text-gray-400 text-sm">{config.footer?.copyrightText || '© 2024 Meesho Clone. All rights reserved.'}</p>
+            {config.footer?.copyrightLinks?.filter(link => link.isVisible).sort((a, b) => a.order - b.order).length > 0 && (
+              <div className="flex gap-6">
+                {config.footer.copyrightLinks.filter(link => link.isVisible).sort((a, b) => a.order - b.order).map((link, index) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target={link.openInNewTab ? '_blank' : '_self'}
+                    rel={link.openInNewTab ? 'noopener noreferrer' : ''}
+                    className="text-gray-400 hover:text-pink-400 transition-colors text-sm"
+                  >
+                    {link.text}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

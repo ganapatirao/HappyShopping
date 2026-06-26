@@ -192,11 +192,11 @@ public class SeedController : ControllerBase
         // Seed Users
         var users = new List<User>
         {
-            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Admin User", Email = "admin@meesho.com", Password = HashPassword("admin123"), PhoneNumber = "9999999999", Role = "Admin", IsPremier = true, PremierExpiryDate = DateTime.UtcNow.AddDays(365), TotalSpent = 0, OrderCount = 0 },
-            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Premier User", Email = "premier@meesho.com", Password = HashPassword("premier123"), PhoneNumber = "8888888888", Role = "Normal", IsPremier = true, PremierExpiryDate = DateTime.UtcNow.AddDays(365), TotalSpent = 50000, OrderCount = 25 },
-            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Normal User", Email = "user@meesho.com", Password = HashPassword("user123"), PhoneNumber = "7777777777", Role = "Normal", IsPremier = false, TotalSpent = 15000, OrderCount = 8 },
-            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "John Doe", Email = "john@example.com", Password = HashPassword("john123"), PhoneNumber = "6666666666", Role = "Normal", IsPremier = false, TotalSpent = 8000, OrderCount = 4 },
-            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Jane Smith", Email = "jane@example.com", Password = HashPassword("jane123"), PhoneNumber = "5555555555", Role = "Normal", IsPremier = true, PremierExpiryDate = DateTime.UtcNow.AddDays(180), TotalSpent = 35000, OrderCount = 18 }
+            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Admin User", Email = "admin@meesho.com", Password = HashPassword("Admin@123"), PhoneNumber = "9999999999", Role = "Admin", IsPremier = true, PremierExpiryDate = DateTime.UtcNow.AddDays(365), TotalSpent = 0, OrderCount = 0 },
+            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Premier User", Email = "premier@meesho.com", Password = HashPassword("Premier@123"), PhoneNumber = "8888888888", Role = "Normal", IsPremier = true, PremierExpiryDate = DateTime.UtcNow.AddDays(365), TotalSpent = 50000, OrderCount = 25 },
+            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Normal User", Email = "user@meesho.com", Password = HashPassword("User@123"), PhoneNumber = "7777777777", Role = "Normal", IsPremier = false, TotalSpent = 15000, OrderCount = 8 },
+            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "John Doe", Email = "john@example.com", Password = HashPassword("John@123"), PhoneNumber = "6666666666", Role = "Normal", IsPremier = false, TotalSpent = 8000, OrderCount = 4 },
+            new User { Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(), FullName = "Jane Smith", Email = "jane@example.com", Password = HashPassword("Jane@123"), PhoneNumber = "5555555555", Role = "Normal", IsPremier = true, PremierExpiryDate = DateTime.UtcNow.AddDays(180), TotalSpent = 35000, OrderCount = 18 }
         };
 
         await _context.Users.InsertManyAsync(users);

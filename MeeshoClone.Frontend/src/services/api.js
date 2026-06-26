@@ -18,6 +18,7 @@ export const authAPI = {
   resetPassword: (data) => api.post('/auth/reset-password', data),
   generateCaptcha: () => api.post('/auth/generate-captcha'),
   verifyCaptcha: (data) => api.post('/auth/verify-captcha', data),
+  getValidationRules: () => api.get('/auth/validation-rules'),
 };
 
 // Vendor API
@@ -120,11 +121,11 @@ export const userAPI = {
 
 // Validation Rules API
 export const validationRulesAPI = {
-  getAll: () => api.get('/validationrules'),
-  getByEntity: (entity) => api.get(`/validationrules/entity/${entity}`),
-  create: (data) => api.post('/validationrules', data),
-  update: (id, data) => api.put(`/validationrules/${id}`, data),
-  delete: (id) => api.delete(`/validationrules/${id}`),
+  getAll: () => api.get('/auth/validation-rules'),
+  getByEntity: (entity) => api.get(`/auth/validation-rules/entity/${entity}`),
+  create: (data) => api.post('/auth/validation-rules', data),
+  update: (id, data) => api.put(`/auth/validation-rules/${id}`, data),
+  delete: (id) => api.delete(`/auth/validation-rules/${id}`),
 };
 
 export default api;

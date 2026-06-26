@@ -202,6 +202,73 @@ public class AuthController : ControllerBase
         return Ok(new { success = true, message = "Successfully upgraded to premier membership" });
     }
 
+    [HttpGet("validation-rules")]
+    public ActionResult GetValidationRules()
+    {
+        return Ok(new
+        {
+            success = true,
+            rules = new
+            {
+                email = new
+                {
+                    required = true,
+                    pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                    minLength = 5,
+                    maxLength = 100,
+                    requiredMessage = "Email address is required",
+                    minLengthMessage = "Email address must be at least 5 characters",
+                    maxLengthMessage = "Email address is too long (maximum 100 characters)",
+                    patternMessage = "Please enter a valid email address (e.g., user@example.com)"
+                },
+                password = new
+                {
+                    required = true,
+                    minLength = 8,
+                    maxLength = 50,
+                    pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
+                    requiredMessage = "Password is required",
+                    minLengthMessage = "Password must be at least 8 characters",
+                    maxLengthMessage = "Password is too long (maximum 50 characters)",
+                    patternMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)"
+                },
+                captcha = new
+                {
+                    required = true,
+                    minLength = 6,
+                    maxLength = 6,
+                    pattern = @"^[A-Z0-9]{6}$",
+                    requiredMessage = "Captcha is required",
+                    minLengthMessage = "Captcha must be exactly 6 characters",
+                    maxLengthMessage = "Captcha must be exactly 6 characters",
+                    patternMessage = "Captcha must contain only uppercase letters and numbers"
+                },
+                fullName = new
+                {
+                    required = true,
+                    minLength = 2,
+                    maxLength = 100,
+                    pattern = @"^[a-zA-Z\s]{2,100}$",
+                    requiredMessage = "Full name is required",
+                    minLengthMessage = "Full name must be at least 2 characters",
+                    maxLengthMessage = "Full name is too long (maximum 100 characters)",
+                    patternMessage = "Full name can only contain letters and spaces"
+                },
+                phoneNumber = new
+                {
+                    required = true,
+                    minLength = 10,
+                    maxLength = 10,
+                    pattern = @"^[6-9]\d{9}$",
+                    requiredMessage = "Phone number is required",
+                    minLengthMessage = "Phone number must be exactly 10 digits",
+                    maxLengthMessage = "Phone number must be exactly 10 digits",
+                    patternMessage = "Phone number must start with 6, 7, 8, or 9 and be 10 digits (India format)"
+                }
+            }
+        });
+    }
+
     private string HashPassword(string password)
     {
         using var sha256 = SHA256.Create();
