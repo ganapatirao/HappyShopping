@@ -89,12 +89,12 @@ const SearchAutocomplete = ({ onSearch }) => {
             placeholder="Search for products, brands and more"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full px-5 py-3 pl-12 pr-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 focus:shadow-lg transition-all shadow-inner bg-white/20 text-white placeholder-white/70"
+            className="w-full px-5 py-3 pl-12 pr-14 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:shadow-lg transition-all shadow-sm bg-gray-100 text-gray-800 placeholder-gray-500"
           />
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70" size={20} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <button
             type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all backdrop-blur-sm"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white p-2 rounded-lg transition-all shadow-md"
           >
             <Search size={18} />
           </button>

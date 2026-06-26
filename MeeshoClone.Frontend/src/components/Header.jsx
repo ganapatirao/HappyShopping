@@ -8,6 +8,7 @@ import SearchAutocomplete from './SearchAutocomplete';
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { user, isAuthenticated, logout, isAdmin } = useAuth();
   const { cartCount } = useCart();
   const [config, setConfig] = useState({
@@ -75,22 +76,16 @@ const Header = () => {
           >
             <Menu size={24} />
           </button>
-          {config.header?.logoBase64 ? (
-            <img src={config.header.logoBase64} alt={config.site?.name || 'Meesho'} className="h-10 object-contain" />
-          ) : (
+          <div className="flex items-center gap-2">
+            {config.header?.logoBase64 && (
+              <img src={config.header.logoBase64} alt={config.site?.name || 'Meesho'} className="h-10 object-contain" />
+            )}
             <h1 className="text-2xl font-bold tracking-tight" style={{ color: config.header?.textColor || '#FFFFFF' }}>{config.header?.logoText || config.site?.name || 'Meesho'}</h1>
-          )}
+          </div>
           <div className="flex items-center gap-2">
             {config.header?.showSearchIcon && (
               <button 
-                onClick={() => {
-                  const searchInput = document.querySelector('.mobile-search-input');
-                  if (searchInput) {
-                    searchInput.focus();
-                  } else {
-                    handleSearchButtonClick();
-                  }
-                }}
+                onClick={() => setMobileSearchOpen(true)}
                 className="p-2 rounded-lg hover:bg-white/10 transition-all"
                 style={{ color: config.header?.textColor || '#FFFFFF' }}
               >
@@ -108,11 +103,12 @@ const Header = () => {
         {/* Desktop Header */}
         <div className="hidden md:flex items-center justify-between py-4">
           <div className="flex items-center gap-10">
-            {config.header?.logoBase64 ? (
-              <img src={config.header.logoBase64} alt={config.site?.name || 'Meesho'} className="h-12 object-contain" />
-            ) : (
+            <div className="flex items-center gap-3">
+              {config.header?.logoBase64 && (
+                <img src={config.header.logoBase64} alt={config.site?.name || 'Meesho'} className="h-12 object-contain" />
+              )}
               <h1 className="text-3xl font-bold tracking-tight" style={{ color: config.header?.textColor || '#FFFFFF' }}>{config.header?.logoText || config.site?.name || 'Meesho'}</h1>
-            )}
+            </div>
             {config.header?.showSearchIcon && (
               <div className="relative w-[450px]">
                 <SearchAutocomplete onSearch={handleSearchButtonClick} />
@@ -159,15 +155,34 @@ const Header = () => {
           </nav>
         </div>
 
+        {/* Mobile Search Overlay */}
+        {mobileSearchOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white rounded-xl mt-2 p-4 shadow-2xl z-50 border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
+                  <Search size={18} className="text-white" />
+                </div>
+                <span className="font-bold text-gray-800 text-lg">Search</span>
+              </div>
+              <button 
+                onClick={() => setMobileSearchOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-all text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <SearchAutocomplete onSearch={handleSearchButtonClick} />
+          </div>
+        )}
+
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white rounded-lg mt-2 p-4 shadow-lg">
             <div className="flex flex-col gap-4">
-              {config.header?.showSearchIcon && (
-                <div className="w-full">
-                  <SearchAutocomplete onSearch={handleSearchButtonClick} />
-                </div>
-              )}
               
               {isAuthenticated ? (
                 <div className="flex flex-col gap-3">
