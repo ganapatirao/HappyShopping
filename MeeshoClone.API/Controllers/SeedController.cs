@@ -29,6 +29,7 @@ public class SeedController : ControllerBase
         await _context.Orders.DeleteManyAsync(_ => true);
         await _context.Carts.DeleteManyAsync(_ => true);
         await _context.Reviews.DeleteManyAsync(_ => true);
+        await _context.SiteConfigurations.DeleteManyAsync(_ => true);
 
         // Seed Categories - 24 comprehensive categories
         var categories = new List<Category>
@@ -375,6 +376,55 @@ public class SeedController : ControllerBase
         }
 
         await _context.Reviews.InsertManyAsync(reviews);
+
+        // Seed Site Configuration
+        var siteConfiguration = new SiteConfiguration
+        {
+            SiteName = "Meesho Clone",
+            SiteDescription = "Your one-stop shop for everything you need",
+            Site = new SiteSection
+            {
+                Name = "Meesho Clone",
+                Description = "Your one-stop shop for everything you need",
+                HeroImage = string.Empty,
+                HeroImageBase64 = string.Empty,
+                SlideshowImages = new List<string>(),
+                SlideshowImagesBase64 = new List<string>(),
+                IsSlideshowEnabled = false
+            },
+            Header = new HeaderConfiguration
+            {
+                Logo = string.Empty,
+                LogoBase64 = string.Empty,
+                LogoText = "Meesho",
+                BackgroundColor = "#EC4899",
+                BackgroundColorEnd = "#8B5CF6",
+                TextColor = "#FFFFFF",
+                Links = new List<HeaderLink>(),
+                Icons = new List<HeaderIcon>(),
+                MobileMenuIcon = string.Empty,
+                MobileMenuIconBase64 = string.Empty
+            },
+            Footer = new FooterConfiguration
+            {
+                CompanyName = "Meesho Clone",
+                CompanyDescription = "Your trusted e-commerce platform",
+                SocialLinks = new List<SocialMediaLink>(),
+                BackgroundColor = "#1F2937",
+                BackgroundColorEnd = "#111827",
+                TextColor = "#FFFFFF",
+                ContactFields = new List<ContactField>(),
+                Sections = new List<FooterSection>(),
+                CopyrightText = "© 2024 Meesho Clone. All rights reserved.",
+                CopyrightLinks = new List<CopyrightLink>(),
+                Logo = string.Empty,
+                LogoBase64 = string.Empty
+            }
+        };
+        siteConfiguration.Id = null;
+        siteConfiguration.CreatedAt = DateTime.UtcNow;
+        siteConfiguration.UpdatedAt = DateTime.UtcNow;
+        await _context.SiteConfigurations.InsertOneAsync(siteConfiguration);
 
         return Ok(new { success = true, message = "Database seeded successfully with all required data" });
     }

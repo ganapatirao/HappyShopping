@@ -53,6 +53,7 @@ namespace MeeshoClone.API.Controllers
         {
             try
             {
+                user.Id = Guid.NewGuid().ToString();
                 user.CreatedAt = DateTime.UtcNow;
                 user.UpdatedAt = DateTime.UtcNow;
                 await _context.Users.InsertOneAsync(user);

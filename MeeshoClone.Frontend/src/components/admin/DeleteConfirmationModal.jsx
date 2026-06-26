@@ -45,6 +45,8 @@ const DeleteConfirmationModal = ({
                   {deleteTarget.type === 'category' && `Category: "${deleteTarget.name}"`}
                   {deleteTarget.type === 'subcategory' && `SubCategory: "${deleteTarget.name}"`}
                   {deleteTarget.type === 'product' && `Product: "${deleteTarget.name}"`}
+                  {deleteTarget.type === 'vendor' && `Vendor: "${deleteTarget.name}"`}
+                  {deleteTarget.type === 'user' && `User: "${deleteTarget.name}"`}
                 </p>
               </div>
             </div>
@@ -58,6 +60,9 @@ const DeleteConfirmationModal = ({
             )}
             {deleteTarget.type === 'subcategory' && (
               <p className="text-gray-500">Products in this subcategory will also be affected.</p>
+            )}
+            {deleteTarget.type === 'user' && (
+              <p className="text-gray-500">All user data, orders, and associated information will be permanently removed.</p>
             )}
             <p className="text-gray-500">Are you sure you want to continue?</p>
           </div>

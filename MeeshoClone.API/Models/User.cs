@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace MeeshoClone.API.Models;
 
 public class User
 {
+    [JsonPropertyName("_id")]
     public string? Id { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

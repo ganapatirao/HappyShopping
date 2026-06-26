@@ -8,6 +8,7 @@ public class SiteConfiguration
     public SiteSection Site { get; set; } = new();
     public HeaderConfiguration Header { get; set; } = new();
     public FooterConfiguration Footer { get; set; } = new();
+    public ThemeConfiguration? Theme { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -142,4 +143,14 @@ public class CopyrightLink
     public bool OpenInNewTab { get; set; } = false;
     public int Order { get; set; }
     public bool IsVisible { get; set; } = true;
+}
+
+public class ThemeConfiguration
+{
+    public string PrimaryColor { get; set; } = "#EC4899";
+    public string SecondaryColor { get; set; } = "#8B5CF6";
+    public string AccentColor { get; set; } = "#F59E0B";
+    public string BackgroundColor { get; set; } = "#FFFFFF";
+    public string TextColor { get; set; } = "#1F2937";
+    public bool IsDarkMode { get; set; } = false;
 }
