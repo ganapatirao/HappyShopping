@@ -21,7 +21,10 @@ public class SiteSection
     public string HeroImageBase64 { get; set; } = string.Empty;
     public List<string> SlideshowImages { get; set; } = new();
     public List<string> SlideshowImagesBase64 { get; set; } = new();
-    public bool IsSlideshowEnabled { get; set; } = false;
+    public bool EnableSlideshow { get; set; } = false;
+    public int BasicInfoOrder { get; set; } = 1;
+    public int HeroImageOrder { get; set; } = 2;
+    public int SlideshowOrder { get; set; } = 3;
 }
 
 public class HeaderConfiguration
@@ -36,6 +39,11 @@ public class HeaderConfiguration
     public List<HeaderIcon> Icons { get; set; } = new();
     public string MobileMenuIcon { get; set; } = string.Empty;
     public string MobileMenuIconBase64 { get; set; } = string.Empty;
+    public int LogoBrandingOrder { get; set; } = 1;
+    public int SearchSettingsOrder { get; set; } = 2;
+    public bool ShowSearchIcon { get; set; } = false;
+    public bool ShowLoginIcon { get; set; } = false;
+    public int CustomIconsOrder { get; set; } = 4;
 }
 
 public class HeaderLink
@@ -76,26 +84,34 @@ public class FooterConfiguration
     // Company Section
     public string CompanyName { get; set; } = "Meesho Clone";
     public string CompanyDescription { get; set; } = "Your trusted e-commerce platform";
-    public List<SocialMediaLink> SocialLinks { get; set; } = new();
+    public List<SocialNetworkLink> SocialLinks { get; set; } = new();
+    public int CompanyInfoOrder { get; set; } = 1;
+    
+    // Business Links
+    public List<BusinessLink> BusinessLinks { get; set; } = new();
+    public int BusinessLinksOrder { get; set; } = 2;
+    
+    // Contact Us
+    public List<ContactFieldNew> ContactFields { get; set; } = new();
+    public int ContactUsOrder { get; set; } = 3;
+    
+    // Copyright Section
+    public string CopyrightText { get; set; } = "© 2024 Meesho Clone. All rights reserved.";
+    public List<CopyrightLinkNew> CopyrightLinks { get; set; } = new();
+    public int CopyrightSectionOrder { get; set; } = 4;
     
     // Color Settings
     public string BackgroundColor { get; set; } = "#1F2937";
     public string BackgroundColorEnd { get; set; } = "#111827";
     public string TextColor { get; set; } = "#FFFFFF";
     
-    // Contact Form Section
-    public List<ContactField> ContactFields { get; set; } = new();
-    
-    // Links Sections
-    public List<FooterSection> Sections { get; set; } = new();
-    
-    // Copyright Section
-    public string CopyrightText { get; set; } = "© 2024 Meesho Clone. All rights reserved.";
-    public List<CopyrightLink> CopyrightLinks { get; set; } = new();
-    
     // Legacy fields for backward compatibility
     public string Logo { get; set; } = string.Empty;
     public string LogoBase64 { get; set; } = string.Empty;
+    public List<SocialMediaLink> SocialLinksLegacy { get; set; } = new();
+    public List<ContactField> ContactFieldsLegacy { get; set; } = new();
+    public List<FooterSection> Sections { get; set; } = new();
+    public List<CopyrightLink> CopyrightLinksLegacy { get; set; } = new();
 }
 
 public class SocialMediaLink
@@ -153,4 +169,31 @@ public class ThemeConfiguration
     public string BackgroundColor { get; set; } = "#FFFFFF";
     public string TextColor { get; set; } = "#1F2937";
     public bool IsDarkMode { get; set; } = false;
+}
+
+public class SocialNetworkLink
+{
+    public string Icon { get; set; } = string.Empty;
+    public string IconLinkUrl { get; set; } = string.Empty;
+    public string IconName { get; set; } = string.Empty;
+}
+
+public class BusinessLink
+{
+    public string Name { get; set; } = string.Empty;
+    public string LinkUrl { get; set; } = string.Empty;
+}
+
+public class CopyrightLinkNew
+{
+    public string Icon { get; set; } = string.Empty;
+    public string LinkText { get; set; } = string.Empty;
+    public string LinkUrl { get; set; } = string.Empty;
+}
+
+public class ContactFieldNew
+{
+    public string Icon { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
 }

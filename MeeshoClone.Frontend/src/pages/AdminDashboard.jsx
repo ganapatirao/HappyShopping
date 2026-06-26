@@ -466,33 +466,45 @@ const AdminDashboard = () => {
   
 
   const [config, setConfig] = useState({
-
-    siteName: 'Meesho Clone',
-
-    siteDescription: 'Your one-stop shop for everything you need',
-
-    header: {
-
-      logo: '',
-
-      logoBase64: '',
-
-      backgroundColor: 'from-pink-500 to-purple-600',
-
-      textColor: 'white',
-
-      showSearch: true,
-
-      showCart: true,
-
-      showWishlist: true,
-
-      showDownloadApp: true,
-
-      showBecomeSupplier: true,
-
+    site: {
+      name: 'Meesho Clone',
+      description: 'Your one-stop shop for everything you need',
+      heroImageBase64: '',
+      slideshowImages: [],
+      enableSlideshow: false,
+      basicInfoOrder: 1,
+      heroImageOrder: 2,
+      slideshowOrder: 3
     },
-
+    header: {
+      logoBase64: '',
+      logoText: 'Meesho',
+      backgroundColor: '#EC4899',
+      backgroundColorEnd: '#8B5CF6',
+      textColor: '#FFFFFF',
+      showSearchIcon: false,
+      showLoginIcon: false,
+      customIcons: [],
+      logoBrandingOrder: 1,
+      searchSettingsOrder: 2,
+      customIconsOrder: 4
+    },
+    footer: {
+      companyName: 'Meesho Clone',
+      companyDescription: 'Your trusted e-commerce platform',
+      socialLinks: [],
+      companyInfoOrder: 1,
+      businessLinks: [],
+      businessLinksOrder: 2,
+      contactFields: [],
+      contactUsOrder: 3,
+      copyrightText: '© 2024 Meesho Clone. All rights reserved.',
+      copyrightLinks: [],
+      copyrightSectionOrder: 4,
+      backgroundColor: '#1F2937',
+      backgroundColorEnd: '#111827',
+      textColor: '#FFFFFF'
+    }
   });
 
 

@@ -45,6 +45,11 @@ export const productAPI = {
   toggleFeatured: (id, data) => api.post(`/product/${id}/featured`, data),
 };
 
+// Search API
+export const searchAPI = {
+  searchAll: (query) => api.get('/product/search/all', { params: { query } }),
+};
+
 // Order API
 export const orderAPI = {
   create: (data) => api.post('/order', data),

@@ -390,7 +390,10 @@ public class SeedController : ControllerBase
                 HeroImageBase64 = string.Empty,
                 SlideshowImages = new List<string>(),
                 SlideshowImagesBase64 = new List<string>(),
-                IsSlideshowEnabled = false
+                EnableSlideshow = false,
+                BasicInfoOrder = 1,
+                HeroImageOrder = 2,
+                SlideshowOrder = 3
             },
             Header = new HeaderConfiguration
             {
@@ -403,20 +406,33 @@ public class SeedController : ControllerBase
                 Links = new List<HeaderLink>(),
                 Icons = new List<HeaderIcon>(),
                 MobileMenuIcon = string.Empty,
-                MobileMenuIconBase64 = string.Empty
+                MobileMenuIconBase64 = string.Empty,
+                LogoBrandingOrder = 1,
+                SearchSettingsOrder = 2,
+                ShowSearchIcon = false,
+                ShowLoginIcon = false,
+                CustomIconsOrder = 4
             },
             Footer = new FooterConfiguration
             {
                 CompanyName = "Meesho Clone",
                 CompanyDescription = "Your trusted e-commerce platform",
-                SocialLinks = new List<SocialMediaLink>(),
+                SocialLinks = new List<SocialNetworkLink>(),
+                CompanyInfoOrder = 1,
+                BusinessLinks = new List<BusinessLink>(),
+                BusinessLinksOrder = 2,
+                ContactFields = new List<ContactFieldNew>(),
+                ContactUsOrder = 3,
+                CopyrightText = "© 2024 Meesho Clone. All rights reserved.",
+                CopyrightLinks = new List<CopyrightLinkNew>(),
+                CopyrightSectionOrder = 4,
                 BackgroundColor = "#1F2937",
                 BackgroundColorEnd = "#111827",
                 TextColor = "#FFFFFF",
-                ContactFields = new List<ContactField>(),
+                SocialLinksLegacy = new List<SocialMediaLink>(),
+                ContactFieldsLegacy = new List<ContactField>(),
                 Sections = new List<FooterSection>(),
-                CopyrightText = "© 2024 Meesho Clone. All rights reserved.",
-                CopyrightLinks = new List<CopyrightLink>(),
+                CopyrightLinksLegacy = new List<CopyrightLink>(),
                 Logo = string.Empty,
                 LogoBase64 = string.Empty
             }

@@ -794,56 +794,65 @@ const SiteConfiguration = ({
                   />
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Icon</label>
-                    <input
-                      type="text"
-                      value={config.footer?.contactIcon || ''}
-                      onChange={(e) => setConfig({ ...config, footer: { ...config.footer, contactIcon: e.target.value } })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                      placeholder="Icon name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Text</label>
-                    <input
-                      type="text"
-                      value={config.footer?.contactText || ''}
-                      onChange={(e) => setConfig({ ...config, footer: { ...config.footer, contactText: e.target.value } })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                      placeholder="Contact text"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-                    <input
-                      type="email"
-                      value={config.footer?.contactEmail || ''}
-                      onChange={(e) => setConfig({ ...config, footer: { ...config.footer, contactEmail: e.target.value } })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                      placeholder="contact@example.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
-                    <input
-                      type="tel"
-                      value={config.footer?.contactPhone || ''}
-                      onChange={(e) => setConfig({ ...config, footer: { ...config.footer, contactPhone: e.target.value } })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                      placeholder="+1 234 567 890"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Address</label>
-                    <textarea
-                      value={config.footer?.contactAddress || ''}
-                      onChange={(e) => setConfig({ ...config, footer: { ...config.footer, contactAddress: e.target.value } })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none text-sm"
-                      rows={2}
-                      placeholder="123 Street, City, Country"
-                    />
-                  </div>
+                  <button
+                    onClick={() => {
+                      const newFields = [...(config.footer?.contactFields || []), { icon: '', name: '', value: '' }];
+                      setConfig({ ...config, footer: { ...config.footer, contactFields: newFields } });
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors text-xs font-medium mb-3"
+                  >
+                    <Plus size={14} />
+                    <span>Add Contact Field</span>
+                  </button>
+                  {config.footer?.contactFields?.map((field, index) => (
+                    <div key={index} className="bg-gray-50 rounded-lg p-3 mb-2 border border-gray-200">
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={field.icon}
+                          onChange={(e) => {
+                            const newFields = [...config.footer.contactFields];
+                            newFields[index].icon = e.target.value;
+                            setConfig({ ...config, footer: { ...config.footer, contactFields: newFields } });
+                          }}
+                          className="px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-xs"
+                          placeholder="Icon"
+                        />
+                        <input
+                          type="text"
+                          value={field.name}
+                          onChange={(e) => {
+                            const newFields = [...config.footer.contactFields];
+                            newFields[index].name = e.target.value;
+                            setConfig({ ...config, footer: { ...config.footer, contactFields: newFields } });
+                          }}
+                          className="px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-xs"
+                          placeholder="Name"
+                        />
+                        <input
+                          type="text"
+                          value={field.value}
+                          onChange={(e) => {
+                            const newFields = [...config.footer.contactFields];
+                            newFields[index].value = e.target.value;
+                            setConfig({ ...config, footer: { ...config.footer, contactFields: newFields } });
+                          }}
+                          className="px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-xs"
+                          placeholder="Value"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newFields = config.footer.contactFields.filter((_, i) => i !== index);
+                          setConfig({ ...config, footer: { ...config.footer, contactFields: newFields } });
+                        }}
+                        className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1"
+                      >
+                        <Trash2 size={12} />
+                        Remove
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { productAPI, seedAPI, categoryAPI } from '../services/api';
+import { productAPI, seedAPI, categoryAPI, siteConfigAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, TrendingUp, Star, ArrowRight } from 'lucide-react';
+import { Sparkles, TrendingUp, Star, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -10,12 +10,34 @@ const HomePage = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [siteConfig, setSiteConfig] = useState({
+    site: {
+      name: 'Meesho Clone',
+      description: 'Your one-stop shop for everything you need',
+      heroImageBase64: '',
+      slideshowImages: [],
+      enableSlideshow: false
+    }
+  });
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { user, isPremier } = useAuth();
 
   useEffect(() => {
     loadProducts();
     loadCategories();
+    loadSiteConfiguration();
   }, []);
+
+  const loadSiteConfiguration = async () => {
+    try {
+      const response = await siteConfigAPI.getConfiguration();
+      if (response.data.success) {
+        setSiteConfig(response.data.configuration);
+      }
+    } catch (error) {
+      console.error('Error loading site configuration:', error);
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -66,6 +88,25 @@ const HomePage = () => {
     }
   };
 
+  const nextSlide = () => {
+    if (siteConfig.site?.slideshowImages?.length > 0) {
+      setCurrentSlideIndex((prev) => (prev + 1) % siteConfig.site.slideshowImages.length);
+    }
+  };
+
+  const prevSlide = () => {
+    if (siteConfig.site?.slideshowImages?.length > 0) {
+      setCurrentSlideIndex((prev) => (prev - 1 + siteConfig.site.slideshowImages.length) % siteConfig.site.slideshowImages.length);
+    }
+  };
+
+  useEffect(() => {
+    if (siteConfig.site?.enableSlideshow && siteConfig.site?.slideshowImages?.length > 0) {
+      const interval = setInterval(nextSlide, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [siteConfig.site?.enableSlideshow, siteConfig.site?.slideshowImages]);
+
   const featuredProducts = products.filter(p => p.isFeatured);
   const trendingProducts = products.filter(p => p.isTrending);
   const premierProducts = products.filter(p => p.isPremierExclusive);
@@ -84,25 +125,95 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white py-12 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">Welcome to Meesho Clone</h1>
-            <p className="text-lg md:text-xl mb-6 opacity-90">Your one-stop shop for everything you need</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={handleSeedDatabase}
-                className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-pink-100 transition-colors shadow-lg"
+      {siteConfig.site?.enableSlideshow && siteConfig.site?.slideshowImages?.length > 0 ? (
+        <div className="relative">
+          <div className="relative h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
+            {siteConfig.site.slideshowImages.map((image, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-opacity duration-500 ${
+                  index === currentSlideIndex ? 'opacity-100' : 'opacity-0'
+                }`}
               >
-                Seed Database
-              </button>
-              <a href="/shopping" className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition-colors text-center">
+                <img
+                  src={image}
+                  alt={`Slide ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <div className="text-center text-white px-4">
+                    <h1 className="text-3xl md:text-5xl font-bold mb-4">{siteConfig.site?.name || 'Meesho Clone'}</h1>
+                    <p className="text-lg md:text-xl mb-6 opacity-90">{siteConfig.site?.description || 'Your one-stop shop for everything you need'}</p>
+                    <a href="/shopping" className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-pink-100 transition-colors shadow-lg inline-block">
+                      Shop Now
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all"
+            >
+              <ChevronRight size={24} />
+            </button>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              {siteConfig.site.slideshowImages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlideIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    index === currentSlideIndex ? 'bg-white' : 'bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : siteConfig.site?.heroImageBase64 ? (
+        <div className="relative h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
+          <img
+            src={siteConfig.site.heroImageBase64}
+            alt="Hero"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="text-center text-white px-4">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4">{siteConfig.site?.name || 'Meesho Clone'}</h1>
+              <p className="text-lg md:text-xl mb-6 opacity-90">{siteConfig.site?.description || 'Your one-stop shop for everything you need'}</p>
+              <a href="/shopping" className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-pink-100 transition-colors shadow-lg inline-block">
                 Shop Now
               </a>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white py-12 md:py-20">
+          <div className="container mx-auto px-4">
+            <div className="text-center">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4">{siteConfig.site?.name || 'Welcome to Meesho Clone'}</h1>
+              <p className="text-lg md:text-xl mb-6 opacity-90">{siteConfig.site?.description || 'Your one-stop shop for everything you need'}</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={handleSeedDatabase}
+                  className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-pink-100 transition-colors shadow-lg"
+                >
+                  Seed Database
+                </button>
+                <a href="/shopping" className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition-colors text-center">
+                  Shop Now
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Categories Section - Mobile Horizontal Scroll */}
       <div className="container mx-auto px-4 py-8">

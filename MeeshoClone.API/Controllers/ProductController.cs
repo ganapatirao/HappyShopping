@@ -66,8 +66,42 @@ public class ProductController : ControllerBase
             Builders<Product>.Filter.Regex(p => p.Description, new MongoDB.Bson.BsonRegularExpression(query, "i")),
             Builders<Product>.Filter.AnyEq(p => p.Tags, query)
         );
-        var products = await _context.Products.Find(filter).ToListAsync();
+        var products = await _context.Products.Find(filter).Limit(10).ToListAsync();
         return Ok(new { success = true, products });
+    }
+
+    [HttpGet("search/all")]
+    public async Task<ActionResult> SearchAll([FromQuery] string query)
+    {
+        var results = new Dictionary<string, object>();
+        
+        // Search products
+        var productFilter = Builders<Product>.Filter.Or(
+            Builders<Product>.Filter.Regex(p => p.Name, new MongoDB.Bson.BsonRegularExpression(query, "i")),
+            Builders<Product>.Filter.Regex(p => p.Description, new MongoDB.Bson.BsonRegularExpression(query, "i")),
+            Builders<Product>.Filter.AnyEq(p => p.Tags, query)
+        );
+        var products = await _context.Products.Find(productFilter).Limit(5).ToListAsync();
+        results["products"] = products.Select(p => new { 
+            p.Id, 
+            p.Name, 
+            p.Category, 
+            p.SubCategory, 
+            p.Price, 
+            p.ImageBase64 
+        });
+
+        // Search categories
+        var categoryFilter = Builders<Category>.Filter.Regex(c => c.Name, new MongoDB.Bson.BsonRegularExpression(query, "i"));
+        var categories = await _context.Categories.Find(categoryFilter).Limit(5).ToListAsync();
+        results["categories"] = categories.Select(c => new { c.Id, c.Name, c.Icon });
+
+        // Search subcategories
+        var subCategoryFilter = Builders<SubCategory>.Filter.Regex(sc => sc.Name, new MongoDB.Bson.BsonRegularExpression(query, "i"));
+        var subCategories = await _context.SubCategories.Find(subCategoryFilter).Limit(5).ToListAsync();
+        results["subCategories"] = subCategories.Select(sc => new { sc.Id, sc.Name, sc.CategoryId });
+
+        return Ok(new { success = true, results });
     }
 
     [HttpPut("{id}")]
