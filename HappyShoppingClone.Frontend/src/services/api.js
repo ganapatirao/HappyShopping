@@ -61,11 +61,6 @@ export const orderAPI = {
   updatePayment: (id, data) => api.put(`/order/${id}/payment`, data),
 };
 
-// Seed API
-export const seedAPI = {
-  seedDatabase: () => api.post('/seed'),
-};
-
 // Category API
 export const categoryAPI = {
   getAll: () => api.get('/category'),
