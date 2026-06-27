@@ -68,7 +68,7 @@ import OverviewStats from '../components/admin/OverviewStats';
 
 import ProductsSection from '../components/admin/ProductsSection';
 
-import CategoriesSection from '../components/admin/CategoriesSection';
+import CategoriesSection from '../components/admin/categories/CategoriesSection';
 
 import SubCategoriesSection from '../components/admin/SubCategoriesSection';
 
@@ -84,7 +84,7 @@ import SettingsSection from '../components/admin/SettingsSection';
 
 import ProductModal from '../components/admin/ProductModal';
 
-import CategoryModal from '../components/admin/CategoryModal';
+import CategoryModal from '../components/admin/categories/CategoryModal';
 
 import SubCategoryModal from '../components/admin/SubCategoryModal';
 
@@ -195,6 +195,8 @@ const AdminDashboard = () => {
 
   const [backendValidationRules, setBackendValidationRules] = useState({});
 
+  const [categoryValidationRules, setCategoryValidationRules] = useState({});
+
   
 
   // Modal states
@@ -229,8 +231,6 @@ const AdminDashboard = () => {
 
     image: '',
 
-    imageBase64: '',
-
     description: '',
 
     isFeatured: false,
@@ -241,8 +241,6 @@ const AdminDashboard = () => {
 
   });
 
-  
-
   const [subCategoryForm, setSubCategoryForm] = useState({
 
     name: '',
@@ -252,8 +250,6 @@ const AdminDashboard = () => {
     categoryId: '',
 
     image: '',
-
-    imageBase64: '',
 
     description: '',
 
@@ -284,8 +280,6 @@ const AdminDashboard = () => {
     stock: '',
 
     imageUrls: [],
-
-    imageBase64: [],
 
     isActive: true,
 
@@ -402,6 +396,43 @@ const AdminDashboard = () => {
     return !error;
 
   };
+
+  const onFieldValidate = (fieldName, error) => {
+    const errors = { ...validationErrors };
+    if (error) {
+      errors[fieldName] = error;
+    } else {
+      delete errors[fieldName];
+    }
+    setValidationErrors(errors);
+  };
+
+  const fetchCategoryValidationRules = async () => {
+    try {
+      const response = await categoryAPI.getValidationRules();
+      if (response.data.success) {
+        setCategoryValidationRules(response.data.rules);
+      }
+    } catch (error) {
+      console.error('Error fetching category validation rules:', error);
+    }
+  };
+
+  const fetchMaxDisplayOrder = async () => {
+    try {
+      const response = await categoryAPI.getMaxDisplayOrder();
+      if (response.data.success) {
+        return response.data.maxDisplayOrder;
+      }
+    } catch (error) {
+      console.error('Error fetching max display order:', error);
+    }
+    return 0;
+  };
+
+  useEffect(() => {
+    fetchCategoryValidationRules();
+  }, []);
 
   
 
@@ -825,7 +856,7 @@ const AdminDashboard = () => {
 
   // Category handlers
 
-  const handleOpenCategoryModal = (category = null) => {
+  const handleOpenCategoryModal = async (category = null) => {
 
     if (category) {
 
@@ -841,8 +872,6 @@ const AdminDashboard = () => {
 
         image: category.image,
 
-        imageBase64: category.imageBase64 || '',
-
         description: category.description,
 
         isFeatured: category.isFeatured,
@@ -854,6 +883,8 @@ const AdminDashboard = () => {
       });
 
     } else {
+
+      const maxDisplayOrder = await fetchMaxDisplayOrder();
 
       setEditingCategory(null);
 
@@ -867,13 +898,11 @@ const AdminDashboard = () => {
 
         image: '',
 
-        imageBase64: '',
-
         description: '',
 
         isFeatured: false,
 
-        displayOrder: 0,
+        displayOrder: maxDisplayOrder,
 
         isActive: true,
 
@@ -920,67 +949,59 @@ const AdminDashboard = () => {
 
 
   const handleSaveCategory = async () => {
-
-    // Validate form before submission
-
-    const categoryRules = {
-
-      name: { required: true, minLength: 2, maxLength: 50 },
-
-      displayName: { required: true, minLength: 2, maxLength: 100 },
-
-      icon: { required: true },
-
-      description: { maxLength: 500 }
-
-    };
-
-    
-
-    if (!validateForm(categoryForm, categoryRules)) {
-
-      alert('Please fix the validation errors before saving');
-
+    // Validate image/icon exclusivity
+    if (categoryForm.image && categoryForm.icon) {
+      setValidationErrors({ image: 'Only one of Image or Icon can be set, not both' });
+      alert('Only one of Image or Icon can be set, not both');
       return;
-
     }
 
-    
+    console.log('Saving category:', categoryForm);
+    console.log('Image length:', categoryForm.image?.length);
 
     try {
-
       if (editingCategory) {
-
         await categoryAPI.update(editingCategory.id, categoryForm);
-
         // Update dependent subcategories when category name changes
-
         if (categoryForm.name !== editingCategory.name) {
-
           await updateSubcategoriesOnCategoryChange(editingCategory.id, categoryForm.name);
-
         }
-
       } else {
-
         await categoryAPI.create(categoryForm);
-
       }
-
       alert(editingCategory ? 'Category updated successfully!' : 'Category created successfully!');
-
       handleCloseCategoryModal();
-
       loadDashboardData();
-
     } catch (error) {
-
       console.error('Error saving category:', error);
-
-      alert('Error saving category');
-
+      console.error('Error response:', error.response?.data);
+      if (error.response && error.response.data && error.response.data.errors) {
+        const backendErrors = error.response.data.errors;
+        console.log('Backend errors type:', typeof backendErrors);
+        console.log('Backend errors:', backendErrors);
+        const errorMap = {};
+        
+        // Handle both array and object errors
+        if (Array.isArray(backendErrors)) {
+          backendErrors.forEach(err => {
+            if (err.toLowerCase().includes('name')) errorMap.name = err;
+            else if (err.toLowerCase().includes('display')) errorMap.displayName = err;
+            else if (err.toLowerCase().includes('icon')) errorMap.icon = err;
+            else if (err.toLowerCase().includes('image')) errorMap.image = err;
+            else if (err.toLowerCase().includes('description')) errorMap.description = err;
+            else errorMap.general = err;
+          });
+        } else {
+          // Handle object errors
+          Object.keys(backendErrors).forEach(key => {
+            const field = key.charAt(0).toLowerCase() + key.slice(1);
+            errorMap[field] = Array.isArray(backendErrors[key]) ? backendErrors[key][0] : backendErrors[key];
+          });
+        }
+        setValidationErrors(errorMap);
+      }
+      alert('Error saving category: ' + (error.response?.data?.errors?.[0] || error.message));
     }
-
   };
 
 
@@ -1127,8 +1148,6 @@ const AdminDashboard = () => {
 
         image: subCategory.image,
 
-        imageBase64: subCategory.imageBase64 || '',
-
         description: subCategory.description,
 
         isFeatured: subCategory.isFeatured,
@@ -1152,8 +1171,6 @@ const AdminDashboard = () => {
         categoryId: '',
 
         image: '',
-
-        imageBase64: '',
 
         description: '',
 
@@ -1333,8 +1350,6 @@ const AdminDashboard = () => {
 
         imageUrls: product.imageUrls || [],
 
-        imageBase64: product.imageBase64 || [],
-
       });
 
     } else {
@@ -1358,8 +1373,6 @@ const AdminDashboard = () => {
         stock: '',
 
         imageUrls: [],
-
-        imageBase64: [],
 
         isActive: true,
 
@@ -1741,11 +1754,11 @@ const AdminDashboard = () => {
 
       if (formType === 'category') {
 
-        setCategoryForm({ ...categoryForm, imageBase64: base64, image: file.name });
+        setCategoryForm({ ...categoryForm, image: base64 });
 
       } else if (formType === 'subcategory') {
 
-        setSubCategoryForm({ ...subCategoryForm, imageBase64: base64, image: file.name });
+        setSubCategoryForm({ ...subCategoryForm, image: base64 });
 
       } else if (formType === 'product') {
 
@@ -1753,9 +1766,7 @@ const AdminDashboard = () => {
 
           ...prev,
 
-          imageBase64: [...prev.imageBase64, base64],
-
-          imageUrls: [...prev.imageUrls, file.name]
+          imageUrls: [...prev.imageUrls, base64]
 
         }));
 
@@ -1777,19 +1788,17 @@ const AdminDashboard = () => {
 
     if (formType === 'category') {
 
-      setCategoryForm({ ...categoryForm, imageBase64: '', image: '' });
+      setCategoryForm({ ...categoryForm, image: '' });
 
     } else if (formType === 'subcategory') {
 
-      setSubCategoryForm({ ...subCategoryForm, imageBase64: '', image: '' });
+      setSubCategoryForm({ ...subCategoryForm, image: '' });
 
     } else if (formType === 'product' && index !== null) {
 
       setProductForm(prev => ({
 
         ...prev,
-
-        imageBase64: prev.imageBase64.filter((_, i) => i !== index),
 
         imageUrls: prev.imageUrls.filter((_, i) => i !== index)
 
@@ -2808,31 +2817,19 @@ const AdminDashboard = () => {
             {/* Category Modal */}
 
             <CategoryModal
-
               show={showCategoryModal}
-
               onClose={handleCloseCategoryModal}
-
               onSave={handleSaveCategory}
-
               editingCategory={editingCategory}
-
               categoryForm={categoryForm}
-
               setCategoryForm={setCategoryForm}
-
-              validationErrors={validationErrors}
-
-              validateField={validateField}
-
               handleImageDrop={handleImageDrop}
-
               handleImageUpload={handleImageUpload}
-
               handleRemoveImage={handleRemoveImage}
-
+              validationErrors={validationErrors}
+              categoryValidationRules={categoryValidationRules}
+              onFieldValidate={onFieldValidate}
             />
-
 
 
             {/* SubCategory Modal */}

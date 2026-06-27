@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { categoryAPI, subCategoryAPI } from '../../services/api';
 
 export const useCategoryOperations = (loadDashboardData, validateForm, defaultValidationRules) => {
@@ -9,15 +9,42 @@ export const useCategoryOperations = (loadDashboardData, validateForm, defaultVa
     displayName: '',
     icon: '',
     image: '',
-    imageBase64: '',
     description: '',
     isFeatured: false,
     displayOrder: 0,
     isActive: true,
   });
   const [validationErrors, setValidationErrors] = useState({});
+  const [categoryValidationRules, setCategoryValidationRules] = useState(null);
 
-  const handleOpenCategoryModal = (category = null) => {
+  useEffect(() => {
+    fetchCategoryValidationRules();
+  }, []);
+
+  const fetchCategoryValidationRules = async () => {
+    try {
+      const response = await categoryAPI.getValidationRules();
+      if (response.data.success) {
+        setCategoryValidationRules(response.data.rules);
+      }
+    } catch (error) {
+      console.error('Error fetching category validation rules:', error);
+    }
+  };
+
+  const fetchMaxDisplayOrder = async () => {
+    try {
+      const response = await categoryAPI.getMaxDisplayOrder();
+      if (response.data.success) {
+        return response.data.maxDisplayOrder;
+      }
+    } catch (error) {
+      console.error('Error fetching max display order:', error);
+    }
+    return 0;
+  };
+
+  const handleOpenCategoryModal = async (category = null) => {
     if (category) {
       setEditingCategory(category);
       setCategoryForm({
@@ -25,23 +52,22 @@ export const useCategoryOperations = (loadDashboardData, validateForm, defaultVa
         displayName: category.displayName,
         icon: category.icon,
         image: category.image,
-        imageBase64: category.imageBase64 || '',
         description: category.description,
         isFeatured: category.isFeatured,
         displayOrder: category.displayOrder,
         isActive: category.isActive,
       });
     } else {
+      const maxDisplayOrder = await fetchMaxDisplayOrder();
       setEditingCategory(null);
       setCategoryForm({
         name: '',
         displayName: '',
         icon: '',
         image: '',
-        imageBase64: '',
         description: '',
         isFeatured: false,
-        displayOrder: 0,
+        displayOrder: maxDisplayOrder,
         isActive: true,
       });
     }
@@ -81,11 +107,19 @@ export const useCategoryOperations = (loadDashboardData, validateForm, defaultVa
   };
 
   const handleSaveCategory = async () => {
-    const categoryRules = {
+    // Validate image/icon exclusivity
+    if (categoryForm.image && categoryForm.icon) {
+      setValidationErrors({ image: 'Only one of Image or Icon can be set, not both' });
+      alert('Only one of Image or Icon can be set, not both');
+      return;
+    }
+
+    // Use backend validation rules if available, otherwise use fallback rules
+    const categoryRules = categoryValidationRules || {
       name: { required: true, minLength: 2, maxLength: 50 },
       displayName: { required: true, minLength: 2, maxLength: 100 },
-      icon: { required: true },
-      description: { maxLength: 500 }
+      icon: { required: false, maxLength: 2 },
+      description: { required: false, maxLength: 500 }
     };
     
     if (!validateForm(categoryForm, categoryRules)) {
@@ -107,7 +141,21 @@ export const useCategoryOperations = (loadDashboardData, validateForm, defaultVa
       loadDashboardData();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Error saving category');
+      if (error.response && error.response.data && error.response.data.errors) {
+        const backendErrors = error.response.data.errors;
+        const errorMap = {};
+        backendErrors.forEach(err => {
+          // Map error messages to fields
+          if (err.toLowerCase().includes('name')) errorMap.name = err;
+          else if (err.toLowerCase().includes('display')) errorMap.displayName = err;
+          else if (err.toLowerCase().includes('icon')) errorMap.icon = err;
+          else if (err.toLowerCase().includes('image')) errorMap.image = err;
+          else if (err.toLowerCase().includes('description')) errorMap.description = err;
+          else errorMap.general = err;
+        });
+        setValidationErrors(errorMap);
+      }
+      alert('Error saving category: ' + (error.response?.data?.errors?.[0] || error.message));
     }
   };
 
@@ -126,6 +174,7 @@ export const useCategoryOperations = (loadDashboardData, validateForm, defaultVa
     setCategoryForm,
     validationErrors,
     setValidationErrors,
+    categoryValidationRules,
     handleOpenCategoryModal,
     handleCloseCategoryModal,
     handleSaveCategory,

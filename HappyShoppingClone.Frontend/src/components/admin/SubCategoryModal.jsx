@@ -114,10 +114,10 @@ const SubCategoryModal = ({
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => handleImageDrop(e, 'subcategory')}
             >
-              {subCategoryForm.imageBase64 ? (
+              {subCategoryForm.image ? (
                 <div className="relative">
                   <img
-                    src={subCategoryForm.imageBase64}
+                    src={subCategoryForm.image}
                     alt="SubCategory preview"
                     className="max-h-48 mx-auto rounded-lg"
                   />

@@ -1,11 +1,22 @@
-@HappyShoppingClone.API_HostAddress = http://localhost:5041
+@MeeshoClone.API_HostAddress = http://localhost:5041
 
-GET {{HappyShoppingClone.API_HostAddress}}/openapi/v1.json
+
+
+GET {{MeeshoClone.API_HostAddress}}/openapi/v1.json
+
 Accept: application/json
+
+
 
 ###
 
-GET {{HappyShoppingClone.API_HostAddress}}/weatherforecast/
+
+
+GET {{MeeshoClone.API_HostAddress}}/weatherforecast/
+
 Accept: application/json
 
+
+
 ###
+

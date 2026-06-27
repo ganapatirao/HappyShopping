@@ -233,7 +233,11 @@ const HomePage = () => {
                 selectedCategory === category.name ? 'bg-purple-600 text-white' : 'bg-white'
               }`}
             >
-              <div className="text-3xl md:text-4xl mb-2">{category.icon || '📦'}</div>
+              {category.image ? (
+                <img src={category.image} alt={category.displayName || category.name} className="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg mx-auto mb-2" />
+              ) : (
+                <div className="text-3xl md:text-4xl mb-2">{category.icon || '📦'}</div>
+              )}
               <p className="text-xs md:text-sm font-semibold">{category.displayName || category.name}</p>
             </div>
           ))}
