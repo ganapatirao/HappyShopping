@@ -119,7 +119,7 @@ public class ProductController : ControllerBase
             }
         }
 
-        product.Id = null;
+        product.Id = Guid.NewGuid().ToString();
         product.CreatedAt = DateTime.UtcNow;
         product.UpdatedAt = DateTime.UtcNow;
         await _context.Products.InsertOneAsync(product);

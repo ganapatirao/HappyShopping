@@ -44,6 +44,7 @@ export const productAPI = {
   update: (id, data) => api.put(`/product/${id}`, data),
   delete: (id) => api.delete(`/product/${id}`),
   toggleFeatured: (id, data) => api.post(`/product/${id}/featured`, data),
+  getValidationRules: () => api.get('/product/validation-rules'),
 };
 
 // Search API

@@ -1493,10 +1493,23 @@ const AdminDashboard = () => {
       loadDashboardData();
 
     } catch (error) {
-
+      // Handle backend validation errors
+      let errorMessage = 'Error saving product';
+      if (error.response && error.response.data) {
+        if (error.response.data.errors) {
+          // Handle array of errors
+          const errors = Array.isArray(error.response.data.errors) 
+            ? error.response.data.errors 
+            : Object.values(error.response.data.errors);
+          errorMessage = Array.isArray(errors) ? errors.join(', ') : errors;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+      
       setToast({
         show: true,
-        message: 'Error saving product',
+        message: errorMessage,
         type: 'error'
       });
 
@@ -2895,6 +2908,8 @@ const AdminDashboard = () => {
               convertToBase64={convertToBase64}
 
               handleRemoveImage={handleRemoveImage}
+
+              showToast={setToast}
 
             />
 
