@@ -9,9 +9,22 @@ public class MongoDbContext
 
     public MongoDbContext(IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("MongoDB") ?? "mongodb://localhost:27017";
-        var client = new MongoClient(connectionString);
-        _database = client.GetDatabase("HappyShoppingClone");
+        var connectionString = configuration.GetConnectionString("MongoDb");
+        
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("MongoDB connection string 'MongoDb' is not configured in appsettings.json");
+        }
+        
+        try
+        {
+            var client = new MongoClient(connectionString);
+            _database = client.GetDatabase("HappyShoppingClone");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to connect to MongoDB: {ex.Message}", ex);
+        }
     }
 
     // User Collections
@@ -27,6 +40,7 @@ public class MongoDbContext
     // Order Collections
     public IMongoCollection<Order> Orders => _database.GetCollection<Order>("Orders");
     public IMongoCollection<Cart> Carts => _database.GetCollection<Cart>("Carts");
+    public IMongoCollection<Payment> Payments => _database.GetCollection<Payment>("Payments");
     
     // Review Collections
     public IMongoCollection<Review> Reviews => _database.GetCollection<Review>("Reviews");

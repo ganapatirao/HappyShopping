@@ -34,17 +34,20 @@ public class CartController : ControllerBase
         
         if (existingCart == null)
         {
-            cart.Id = null;
+            cart.Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
+            cart.Subtotal = cart.Items.Sum(i => i.Price * i.Quantity);
+            cart.TotalAmount = cart.Subtotal - cart.DiscountAmount + cart.DeliveryCharge;
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.Carts.InsertOneAsync(cart);
             return Ok(new { success = true, cart });
         }
         else
         {
-            // Merge items
+            // Merge items - check for same product AND variant
             foreach (var newItem in cart.Items)
             {
-                var existingItem = existingCart.Items.FirstOrDefault(i => i.ProductId == newItem.ProductId);
+                var existingItem = existingCart.Items.FirstOrDefault(i => 
+                    i.ProductId == newItem.ProductId && i.VariantId == newItem.VariantId);
                 if (existingItem != null)
                 {
                     existingItem.Quantity += newItem.Quantity;
@@ -55,8 +58,9 @@ public class CartController : ControllerBase
                 }
             }
             
-            // Recalculate total
-            existingCart.TotalAmount = existingCart.Items.Sum(i => i.Price * i.Quantity);
+            // Recalculate totals
+            existingCart.Subtotal = existingCart.Items.Sum(i => i.Price * i.Quantity);
+            existingCart.TotalAmount = existingCart.Subtotal - existingCart.DiscountAmount + existingCart.DeliveryCharge;
             existingCart.UpdatedAt = DateTime.UtcNow;
             await _context.Carts.ReplaceOneAsync(c => c.Id == existingCart.Id, existingCart);
             return Ok(new { success = true, cart = existingCart });
@@ -75,14 +79,15 @@ public class CartController : ControllerBase
         cart.Id = cartId;
         cart.UserId = existingCart.UserId;
         cart.UpdatedAt = DateTime.UtcNow;
-        cart.TotalAmount = cart.Items.Sum(i => i.Price * i.Quantity);
+        cart.Subtotal = cart.Items.Sum(i => i.Price * i.Quantity);
+        cart.TotalAmount = cart.Subtotal - cart.DiscountAmount + cart.DeliveryCharge;
         
         await _context.Carts.ReplaceOneAsync(c => c.Id == cartId, cart);
         return Ok(new { success = true, cart });
     }
 
-    [HttpDelete("{cartId}/item/{itemId}")]
-    public async Task<ActionResult> RemoveFromCart(string cartId, string itemId)
+    [HttpPut("{cartId}/item/{itemId}")]
+    public async Task<ActionResult> UpdateCartItem(string cartId, string itemId, [FromBody] UpdateCartItemRequest request)
     {
         var cart = await _context.Carts.Find(c => c.Id == cartId).FirstOrDefaultAsync();
         if (cart == null)
@@ -90,11 +95,34 @@ public class CartController : ControllerBase
             return NotFound(new { success = false, error = "Cart not found" });
         }
 
-        var item = cart.Items.FirstOrDefault(i => i.ProductId == itemId);
+        var item = cart.Items.FirstOrDefault(i => i.ProductId == itemId && i.VariantId == request.VariantId);
+        if (item != null)
+        {
+            item.Quantity = request.Quantity;
+            cart.Subtotal = cart.Items.Sum(i => i.Price * i.Quantity);
+            cart.TotalAmount = cart.Subtotal - cart.DiscountAmount + cart.DeliveryCharge;
+            cart.UpdatedAt = DateTime.UtcNow;
+            await _context.Carts.ReplaceOneAsync(c => c.Id == cartId, cart);
+        }
+
+        return Ok(new { success = true, cart });
+    }
+
+    [HttpDelete("{cartId}/item/{itemId}/{variantId}")]
+    public async Task<ActionResult> RemoveFromCart(string cartId, string itemId, string variantId)
+    {
+        var cart = await _context.Carts.Find(c => c.Id == cartId).FirstOrDefaultAsync();
+        if (cart == null)
+        {
+            return NotFound(new { success = false, error = "Cart not found" });
+        }
+
+        var item = cart.Items.FirstOrDefault(i => i.ProductId == itemId && i.VariantId == variantId);
         if (item != null)
         {
             cart.Items.Remove(item);
-            cart.TotalAmount = cart.Items.Sum(i => i.Price * i.Quantity);
+            cart.Subtotal = cart.Items.Sum(i => i.Price * i.Quantity);
+            cart.TotalAmount = cart.Subtotal - cart.DiscountAmount + cart.DeliveryCharge;
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.Carts.ReplaceOneAsync(c => c.Id == cartId, cart);
         }
@@ -112,4 +140,10 @@ public class CartController : ControllerBase
         }
         return Ok(new { success = true, message = "Cart cleared successfully" });
     }
+}
+
+public class UpdateCartItemRequest
+{
+    public string VariantId { get; set; } = string.Empty;
+    public int Quantity { get; set; }
 }

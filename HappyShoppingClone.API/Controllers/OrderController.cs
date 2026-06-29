@@ -126,4 +126,5 @@ public class UpdatePaymentStatusRequest
 {
     public string PaymentStatus { get; set; } = string.Empty;
     public string PaymentMethod { get; set; } = string.Empty;
+    public string? FailureReason { get; set; }
 }

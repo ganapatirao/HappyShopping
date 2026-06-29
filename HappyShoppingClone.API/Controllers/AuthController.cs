@@ -35,7 +35,7 @@ public class AuthController : ControllerBase
 
         var newUser = new User
         {
-            Id = null,
+            Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
             FullName = request.FullName,
             Email = request.Email.ToLower(),
             Password = HashPassword(request.Password),
@@ -107,6 +107,13 @@ public class AuthController : ControllerBase
         user.FailedLoginAttempts = 0;
         user.LockoutUntil = null;
         user.UpdatedAt = DateTime.UtcNow;
+        
+        // Ensure user has an ID
+        if (string.IsNullOrEmpty(user.Id))
+        {
+            user.Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
+        }
+        
         await _context.Users.ReplaceOneAsync(u => u.Id == user.Id, user);
 
         return Ok(new { success = true, user = new { id = user.Id, fullName = user.FullName, email = user.Email, role = user.Role, isPremier = user.IsPremier, premierExpiryDate = user.PremierExpiryDate } });

@@ -43,6 +43,7 @@ public class HeaderConfiguration
     public int SearchSettingsOrder { get; set; } = 2;
     public bool ShowSearchIcon { get; set; } = false;
     public bool ShowLoginIcon { get; set; } = false;
+    public bool ShowCartIcon { get; set; } = false;
     public int CustomIconsOrder { get; set; } = 4;
 }
 
