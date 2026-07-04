@@ -97,7 +97,9 @@ export const CartProvider = ({ children }) => {
     try {
       if (!cart) return { success: false };
       
-      const response = await cartAPI.removeFromCart(cart.id, productId, variantId);
+      // Handle empty variantId by using a default value
+      const safeVariantId = variantId || 'default';
+      const response = await cartAPI.removeFromCart(cart.id, productId, safeVariantId);
       if (response.data.success) {
         setCart(response.data.cart);
         setCartCount(response.data.cart.items?.length || 0);

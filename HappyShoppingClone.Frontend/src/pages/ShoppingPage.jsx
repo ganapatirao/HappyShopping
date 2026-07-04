@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { productAPI, categoryAPI, subCategoryAPI } from '../services/api';
+import { productAPI, categoryAPI, subCategoryAPI, API_BASE_URL } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import { SlidersHorizontal, X, ChevronDown, Star, Minus, Plus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const ShoppingPage = () => {
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category');
   const search = searchParams.get('search');
+  const { user, isAuthenticated } = useAuth();
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -21,6 +23,7 @@ const ShoppingPage = () => {
   const [maxPrice, setMaxPrice] = useState(50000);
   const [selectedRating, setSelectedRating] = useState(0);
   const [sortBy, setSortBy] = useState('featured');
+  const [wishlist, setWishlist] = useState([]);
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
     subcategories: true,
@@ -33,7 +36,59 @@ const ShoppingPage = () => {
     loadProducts();
     loadCategories();
     loadSubCategories();
+    loadWishlist();
   }, [category, search]);
+
+  const loadWishlist = async () => {
+    if (isAuthenticated && user) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setWishlist(data.wishlist || []);
+        }
+      } catch (error) {
+        console.error('Error loading wishlist:', error);
+      }
+    }
+  };
+
+  const handleToggleWishlist = async (productId) => {
+    if (!isAuthenticated || !user) {
+      alert('Please login to add items to wishlist');
+      return;
+    }
+
+    try {
+      if (wishlist.includes(productId)) {
+        // Remove from wishlist
+        const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setWishlist(wishlist.filter(id => id !== productId));
+        }
+      } else {
+        // Add to wishlist
+        const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId })
+        });
+        const data = await response.json();
+        if (data.success) {
+          setWishlist([...wishlist, productId]);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    }
+  };
 
   useEffect(() => {
     if (products.length > 0) {
@@ -507,7 +562,12 @@ const ShoppingPage = () => {
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onToggleWishlist={handleToggleWishlist}
+                    wishlist={wishlist}
+                  />
                 ))}
               </div>
             ) : (

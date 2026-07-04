@@ -3,11 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShoppingBag, Heart, User, Settings, Package, LogOut, Truck, CreditCard, MapPin, Edit, Plus, X, Bell, Shield, Globe, Eye, Filter, ChevronDown, Calendar, DollarSign, Mail, Phone } from 'lucide-react';
 import Toast from '../components/Toast';
+import { API_BASE_URL } from '../services/api';
+import { useCart } from '../context/CartContext';
 
 const UserDashboard = () => {
   const { user, logout, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { addToCart } = useCart();
   const [activeTab, setActiveTab] = useState('overview');
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
@@ -102,7 +105,7 @@ const UserDashboard = () => {
       // Load user settings from API
       const loadSettings = async () => {
         try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+          
           const response = await fetch(`${API_BASE_URL}/user/${user.id}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -124,6 +127,27 @@ const UserDashboard = () => {
         }
       };
       loadSettings();
+
+      // Load wishlist from MongoDB
+      const loadWishlist = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const data = await response.json();
+          console.log('Wishlist API response:', data);
+          if (data.success) {
+            console.log('Setting wishlist:', data.wishlist);
+            setWishlist(data.wishlist || []);
+          } else {
+            console.error('Wishlist API error:', data.message);
+          }
+        } catch (error) {
+          console.error('Error loading wishlist:', error);
+        }
+      };
+      loadWishlist();
     }
   }, [user, isAuthenticated]);
 
@@ -155,7 +179,7 @@ const UserDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+      
       const response = await fetch(`${API_BASE_URL}/order/user/${user.id}`);
       const data = await response.json();
       if (data.success) {
@@ -408,6 +432,7 @@ const UserDashboard = () => {
   }, [orders, orderFilter, dateFilter]);
 
   const fetchWishlistProducts = async () => {
+    console.log('fetchWishlistProducts called, wishlist:', wishlist);
     if (wishlist.length === 0) {
       setWishlistProducts([]);
       return;
@@ -415,14 +440,32 @@ const UserDashboard = () => {
     
     setLoadingWishlist(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
       const productPromises = wishlist.map(productId => 
-        fetch(`${API_BASE_URL}/products/${productId}`)
-          .then(res => res.json())
-          .catch(() => null)
+        fetch(`${API_BASE_URL}/product/${productId}`)
+          .then(res => {
+            console.log(`Product ${productId} response:`, res.status);
+            return res.json();
+          })
+          .then(data => {
+            console.log('Product data for', productId, ':', data);
+            // Handle API response structure: { success: true, product: {...} }
+            const product = data.product || data;
+            // Normalize ID property from backend (Id) to frontend (id)
+            if (product && product.Id && !product.id) {
+              product.id = product.Id;
+            }
+            return product;
+          })
+          .catch(err => {
+            console.error(`Error fetching product ${productId}:`, err);
+            return null;
+          })
       );
       const products = await Promise.all(productPromises);
-      setWishlistProducts(products.filter(p => p !== null));
+      console.log('Fetched products:', products);
+      const validProducts = products.filter(p => p !== null);
+      console.log('Setting wishlistProducts:', validProducts);
+      setWishlistProducts(validProducts);
     } catch (error) {
       console.error('Error fetching wishlist products:', error);
     } finally {
@@ -510,7 +553,7 @@ const UserDashboard = () => {
   };
 
   const validateAddressField = async (field, value) => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+    
     try {
       const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/validate`, {
         method: 'POST',
@@ -541,7 +584,7 @@ const UserDashboard = () => {
   };
 
   const validateAddressForm = async () => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+    
     try {
       const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/validate`, {
         method: 'POST',
@@ -564,7 +607,7 @@ const UserDashboard = () => {
   };
 
   const validatePaymentField = async (field, value) => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+    
     try {
       const response = await fetch(`${API_BASE_URL}/user/${user.id}/payment-methods/validate`, {
         method: 'POST',
@@ -595,7 +638,7 @@ const UserDashboard = () => {
   };
 
   const validatePaymentForm = async () => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+    
     try {
       const response = await fetch(`${API_BASE_URL}/user/${user.id}/payment-methods/validate`, {
         method: 'POST',
@@ -742,7 +785,7 @@ const UserDashboard = () => {
     }
     
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+      
       const response = await fetch(`${API_BASE_URL}/user/${user.id}`, {
         method: 'PUT',
         headers: {
@@ -772,7 +815,7 @@ const UserDashboard = () => {
     }
     
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+      
       const response = await fetch(`${API_BASE_URL}/user/${user.id}/change-password`, {
         method: 'POST',
         headers: {
@@ -810,7 +853,7 @@ const UserDashboard = () => {
 
   const handleSavePreferences = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
+      
       const response = await fetch(`${API_BASE_URL}/user/${user.id}/preferences`, {
         method: 'PUT',
         headers: {
@@ -827,6 +870,60 @@ const UserDashboard = () => {
     } catch (error) {
       console.error('Error saving preferences:', error);
       showToast('Failed to save preferences', 'error');
+    }
+  };
+
+  const addToWishlist = async (productId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId })
+      });
+      const data = await response.json();
+      if (data.success) {
+        const updatedWishlist = [...wishlist, productId];
+        setWishlist(updatedWishlist);
+        showToast('Added to wishlist!');
+      } else {
+        showToast('Failed to add to wishlist', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      showToast('Failed to add to wishlist', 'error');
+    }
+  };
+
+  const removeFromWishlist = async (productId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist/${productId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      if (data.success) {
+        const updatedWishlist = wishlist.filter(id => id !== productId);
+        setWishlist(updatedWishlist);
+        showToast('Removed from wishlist!');
+      }
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      showToast('Failed to remove from wishlist', 'error');
+    }
+  };
+
+  const handleAddToCart = async (product) => {
+    try {
+      // Use CartContext's addToCart for dynamic cart count sync
+      const result = await addToCart(product, 1);
+      if (result.success) {
+        showToast('Added to cart successfully!');
+      } else {
+        showToast('Failed to add to cart', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      showToast('Failed to add to cart', 'error');
     }
   };
 
@@ -1365,28 +1462,7 @@ const UserDashboard = () => {
                             View Details
                           </a>
                           <button
-                            onClick={() => {
-                              const addToCart = async () => {
-                                try {
-                                  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041/api';
-                                  const response = await fetch(`${API_BASE_URL}/cart`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      productId: product.id,
-                                      quantity: 1,
-                                      userId: user?.id
-                                    })
-                                  });
-                                  if (response.ok) {
-                                    alert('Added to cart successfully!');
-                                  }
-                                } catch (error) {
-                                  console.error('Error adding to cart:', error);
-                                }
-                              };
-                              addToCart();
-                            }}
+                            onClick={() => handleAddToCart(product)}
                             className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-xs sm:text-sm font-semibold hover:from-green-600 hover:to-emerald-600 transition-all shadow-md"
                           >
                             Add to Cart
@@ -2570,3 +2646,4 @@ const UserDashboard = () => {
 };
 
 export default UserDashboard;
+

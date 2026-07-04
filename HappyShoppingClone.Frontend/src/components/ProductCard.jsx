@@ -1,15 +1,19 @@
 import { Heart, ShoppingCart, Star } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import Toast from './Toast';
 
-const ProductCard = ({ product, onToggleWishlist }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+const ProductCard = ({ product, onToggleWishlist, wishlist = [] }) => {
+  const [isWishlisted, setIsWishlisted] = useState(wishlist.includes(product.id));
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const discountPercentage = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+
+  useEffect(() => {
+    setIsWishlisted(wishlist.includes(product.id));
+  }, [wishlist, product.id]);
 
   const handleCardClick = () => {
     navigate(`/product/${product.id}`);
