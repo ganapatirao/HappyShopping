@@ -483,5 +483,83 @@ namespace HappyShoppingClone.API.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        [HttpPost("{id}/wishlist")]
+        public async Task<IActionResult> AddToWishlist(string id, [FromBody] dynamic request)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                var productId = request.GetProperty("productId").GetString();
+                
+                if (string.IsNullOrEmpty(productId))
+                {
+                    return BadRequest(new { success = false, message = "Product ID is required" });
+                }
+
+                if (!user.Wishlist.Contains(productId))
+                {
+                    user.Wishlist.Add(productId);
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _context.Users.ReplaceOneAsync(u => u.Id == id, user);
+                }
+
+                return Ok(new { success = true, message = "Added to wishlist" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}/wishlist/{productId}")]
+        public async Task<IActionResult> RemoveFromWishlist(string id, string productId)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                if (user.Wishlist.Contains(productId))
+                {
+                    user.Wishlist.Remove(productId);
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _context.Users.ReplaceOneAsync(u => u.Id == id, user);
+                }
+
+                return Ok(new { success = true, message = "Removed from wishlist" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}/wishlist")]
+        public async Task<IActionResult> GetWishlist(string id)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                return Ok(new { success = true, wishlist = user.Wishlist });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }
