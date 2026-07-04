@@ -26,6 +26,11 @@ public class User
     public string? CaptchaToken { get; set; } = null;
     public DateTime? CaptchaExpiry { get; set; } = null;
     
+    // Preferences
+    public bool EmailNotifications { get; set; } = true;
+    public bool SmsNotifications { get; set; } = true;
+    public bool TwoFactorAuth { get; set; } = false;
+    
     public List<Address> Addresses { get; set; } = new();
     public List<string> Wishlist { get; set; } = new();
     public decimal TotalSpent { get; set; } = 0;
