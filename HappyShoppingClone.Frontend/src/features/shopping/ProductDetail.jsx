@@ -4,7 +4,7 @@ import { productAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../services/api';
 import { useCart } from '../../context/CartContext';
-import Toast from '../../components/user/Toast';
+import Toast from '../shared/common/Toast';
 import { 
   ShoppingCart, 
   Heart, 

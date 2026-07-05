@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { productAPI, categoryAPI, siteConfigAPI } from '../../services/api';
-import ProductCard from '../../components/shopping/ProductCard';
+import ProductCard from '../shared/common/ProductCard';
 import { useAuth } from '../../context/AuthContext';
 import { Sparkles, TrendingUp, Star, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 

@@ -1,8 +1,8 @@
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
-import Toast from '../user/Toast';
+import Toast from './Toast';
 
 const ProductCard = ({ product, onToggleWishlist, wishlist = [] }) => {
   const [isWishlisted, setIsWishlisted] = useState(wishlist.includes(product.id));

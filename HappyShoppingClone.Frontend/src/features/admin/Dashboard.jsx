@@ -69,39 +69,39 @@ import {
 
 
 
-import OverviewStats from '../../components/admin/OverviewStats';
+import OverviewStats from './OverviewStats';
 
-import ProductsSection from '../../components/admin/ProductsSection';
+import ProductsSection from './ProductsSection';
 
-import CategoriesSection from '../../components/admin/categories/CategoriesSection';
+import CategoriesSection from './categories/CategoriesSection';
 
-import SubCategoriesSection from '../../components/admin/subcategories/SubCategoriesSection';
+import SubCategoriesSection from './subcategories/SubCategoriesSection';
 
-import VendorsSection from '../../components/admin/VendorsSection';
+import VendorsSection from './VendorsSection';
 
-import OrdersSection from '../../components/admin/OrdersSection';
+import OrdersSection from './OrdersSection';
 
-import UsersSection from '../../components/admin/users/UsersSection';
+import UsersSection from './users/UsersSection';
 
-import SiteConfiguration from '../../components/admin/site-config/SiteConfiguration';
+import SiteConfiguration from './site-config/SiteConfiguration';
 
-import SettingsSection from '../../components/admin/SettingsSection';
+import SettingsSection from './SettingsSection';
 
-import ProductModal from '../../components/admin/ProductModal';
+import ProductModal from './ProductModal';
 
-import CategoryModal from '../../components/admin/categories/CategoryModal';
+import CategoryModal from './categories/CategoryModal';
 
-import SubCategoryModal from '../../components/admin/subcategories/SubCategoryModal';
+import SubCategoryModal from './subcategories/SubCategoryModal';
 
-import VendorModal from '../../components/admin/VendorModal';
+import VendorModal from './VendorModal';
 
-import UserModal from '../../components/admin/users/UserModal';
+import UserModal from './users/UserModal';
 
-import DeleteConfirmationModal from '../../components/admin/DeleteConfirmationModal';
+import DeleteConfirmationModal from '../shared/common/DeleteConfirmationModal';
 
-import ReviewsSection from '../../components/admin/ReviewsSection';
+import ReviewsSection from './ReviewsSection';
 
-import Toast from '../../components/user/Toast';
+import Toast from '../shared/common/Toast';
 
 
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'lucide-react';
-import { siteConfigAPI } from '../../services/api';
+import { siteConfigAPI } from '../../../services/api';
 
 const Footer = () => {
   const [config, setConfig] = useState({

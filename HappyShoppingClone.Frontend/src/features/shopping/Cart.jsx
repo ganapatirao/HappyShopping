@@ -6,8 +6,8 @@ import { API_BASE_URL } from '../../services/api';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, CreditCard, MapPin, Phone, User, Package, Truck, Shield, CheckCircle, Sparkles, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { validateField, validateAddress, validatePaymentDetails, validateCheckout } from '../../utils/validation';
 import { setValidationConfig, getAddressValidation } from '../../utils/validationConfig';
-import Toast from '../../components/user/Toast';
-import DeleteConfirmationModal from '../../components/admin/DeleteConfirmationModal';
+import Toast from '../shared/common/Toast';
+import DeleteConfirmationModal from '../shared/common/DeleteConfirmationModal';
 
 const CartPage = () => {
   const navigate = useNavigate();

@@ -1,16 +1,16 @@
 import { Routes, Route } from 'react-router-dom'
-import Header from './components/layout/Header'
-import Footer from './components/layout/Footer'
-import HomePage from './pages/shopping/Home'
-import ShoppingPage from './pages/shopping/Shopping'
-import ProductDetailPage from './pages/product/ProductDetail'
-import AdminDashboard from './pages/admin/Dashboard'
-import CartPage from './pages/shopping/Cart'
-import SiteConfigurationPage from './pages/admin/SiteConfiguration'
-import LoginPage from './pages/auth/Login'
-import RegisterPage from './pages/auth/Register'
-import ForgotPasswordPage from './pages/auth/ForgotPassword'
-import UserDashboard from './pages/user/Dashboard'
+import Header from './features/shared/layout/Header'
+import Footer from './features/shared/layout/Footer'
+import Home from './features/shopping/Home'
+import Shopping from './features/shopping/Shopping'
+import ProductDetail from './features/shopping/ProductDetail'
+import AdminDashboard from './features/admin/Dashboard'
+import Cart from './features/shopping/Cart'
+import SiteConfiguration from './features/admin/site-config/SiteConfiguration'
+import Login from './features/auth/Login'
+import Register from './features/auth/Register'
+import ForgotPassword from './features/auth/ForgotPassword'
+import UserDashboard from './features/user/Dashboard'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import './styles/App.css'
@@ -23,15 +23,15 @@ function App() {
           <Header />
           <main className="flex-grow">
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/shopping" element={<ShoppingPage />} />
-              <Route path="/product/:id" element={<ProductDetailPage />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/shopping" element={<Shopping />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/configuration" element={<SiteConfigurationPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/admin/configuration" element={<SiteConfiguration />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/dashboard" element={<UserDashboard />} />
             </Routes>
           </main>

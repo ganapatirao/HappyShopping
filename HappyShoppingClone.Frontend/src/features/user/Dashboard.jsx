@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShoppingBag, Heart, User, Settings, Package, LogOut, Truck, CreditCard, MapPin, Edit, Plus, X, Bell, Shield, Globe, Eye, Filter, ChevronDown, Calendar, DollarSign, Mail, Phone } from 'lucide-react';
-import Toast from '../../components/user/Toast';
+import Toast from '../shared/common/Toast';
 import { API_BASE_URL } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 
