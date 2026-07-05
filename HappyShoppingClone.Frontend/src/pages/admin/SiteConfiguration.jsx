@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { siteConfigAPI } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { siteConfigAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { Settings, Palette, Layout, Image as ImageIcon, Save, X, Plus, Trash2 } from 'lucide-react';
-import Toast from '../components/Toast';
+import Toast from '../../components/user/Toast';
 
 const SiteConfigurationPage = () => {
   const { isAdmin } = useAuth();

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { productAPI, categoryAPI, subCategoryAPI, API_BASE_URL } from '../services/api';
-import ProductCard from '../common/ProductCard';
+import { productAPI, categoryAPI, subCategoryAPI, API_BASE_URL } from '../../services/api';
+import ProductCard from '../../components/shopping/ProductCard';
 import { SlidersHorizontal, X, ChevronDown, Star, Minus, Plus } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 const ShoppingPage = () => {
   const [searchParams] = useSearchParams();

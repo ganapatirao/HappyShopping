@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Search, ShoppingBag, User, Menu, Heart, Download, LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
-import { siteConfigAPI } from '../services/api';
-import SearchAutocomplete from '../common/SearchAutocomplete';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
+import { siteConfigAPI } from '../../services/api';
+import SearchAutocomplete from '../shopping/SearchAutocomplete';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');

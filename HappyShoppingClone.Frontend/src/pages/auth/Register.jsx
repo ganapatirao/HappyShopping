@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { authAPI } from '../services/api';
-import { Lock, Mail, Shield, RefreshCw, ArrowLeft, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { authAPI } from '../../services/api';
+import { Lock, Mail, Shield, RefreshCw, ArrowLeft, Sparkles, User, Phone } from 'lucide-react';
 
-const LoginPage = () => {
+const RegisterPage = () => {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [captcha, setCaptcha] = useState('');
   const [captchaText, setCaptchaText] = useState('');
   const [error, setError] = useState('');
@@ -14,15 +16,26 @@ const LoginPage = () => {
   const [rulesLoading, setRulesLoading] = useState(true);
   const [validationRules, setValidationRules] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({
+    fullName: '',
     email: '',
     password: '',
+    phoneNumber: '',
     captcha: ''
   });
-  const { login, isAuthenticated } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/';
+  const generateCaptcha = async () => {
+    try {
+      const response = await authAPI.generateCaptcha();
+      if (response.data.success) {
+        setCaptchaText(response.data.captchaText);
+      }
+    } catch (error) {
+      const simpleCaptcha = Math.random().toString(36).substring(2, 8).toUpperCase();
+      setCaptchaText(simpleCaptcha);
+    }
+  };
 
   const loadValidationRules = async () => {
     try {
@@ -67,14 +80,13 @@ const LoginPage = () => {
   };
 
   const handleFieldBlur = (fieldName, value) => {
-    if (rulesLoading) return; // Don't validate while rules are loading
+    if (rulesLoading) return;
     const error = validateField(fieldName, value);
     setFieldErrors(prev => ({ ...prev, [fieldName]: error }));
   };
 
   const handleFieldMouseOut = (fieldName, value) => {
-    if (rulesLoading) return; // Don't validate while rules are loading
-    // Only validate if there's a value and no error currently
+    if (rulesLoading) return;
     if (value && !fieldErrors[fieldName]) {
       const error = validateField(fieldName, value);
       setFieldErrors(prev => ({ ...prev, [fieldName]: error }));
@@ -85,31 +97,23 @@ const LoginPage = () => {
     // Clear error when user starts typing
     setFieldErrors(prev => ({ ...prev, [fieldName]: '' }));
     
-    if (fieldName === 'email') setEmail(value);
+    if (fieldName === 'fullName') setFullName(value);
+    else if (fieldName === 'email') setEmail(value);
     else if (fieldName === 'password') setPassword(value);
+    else if (fieldName === 'phoneNumber') setPhoneNumber(value);
     else if (fieldName === 'captcha') setCaptcha(value);
   };
 
   const validateAllFields = () => {
     const errors = {
+      fullName: validateField('fullName', fullName),
       email: validateField('email', email),
       password: validateField('password', password),
+      phoneNumber: validateField('phoneNumber', phoneNumber),
       captcha: validateField('captcha', captcha)
     };
     setFieldErrors(errors);
     return !Object.values(errors).some(error => error !== '');
-  };
-
-  const generateCaptcha = async () => {
-    try {
-      const response = await authAPI.generateCaptcha();
-      if (response.data.success) {
-        setCaptchaText(response.data.captchaText);
-      }
-    } catch (error) {
-      const simpleCaptcha = Math.random().toString(36).substring(2, 8).toUpperCase();
-      setCaptchaText(simpleCaptcha);
-    }
   };
 
   useEffect(() => {
@@ -119,9 +123,9 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(from, { replace: true });
+      navigate('/');
     }
-  }, [isAuthenticated, navigate, from]);
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -136,7 +140,6 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // Verify captcha first
       const verifyResponse = await authAPI.verifyCaptcha({ captchaText: captcha, captchaToken: 'test' });
       if (!verifyResponse.data.success) {
         setError('Invalid captcha. Please try again.');
@@ -145,16 +148,23 @@ const LoginPage = () => {
         return;
       }
 
-      const response = await authAPI.login({ email, password, captchaToken: 'test' });
+      const response = await authAPI.register({ 
+        fullName, 
+        email, 
+        password, 
+        phoneNumber,
+        captchaToken: 'test'
+      });
+      
       if (response.data.success) {
-        login(response.data.user);
-        navigate(from, { replace: true });
+        register(response.data.user);
+        navigate('/');
       } else {
-        setError(response.data.error || 'Login failed');
+        setError(response.data.error || 'Registration failed');
         generateCaptcha();
       }
     } catch (error) {
-      setError(error.response?.data?.error || 'Login failed. Please try again.');
+      setError(error.response?.data?.error || 'Registration failed. Please try again.');
       generateCaptcha();
     } finally {
       setLoading(false);
@@ -186,9 +196,9 @@ const LoginPage = () => {
             <Sparkles className="text-white" size={32} />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-            Welcome Back
+            Create Account
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">Sign in to your account to continue</p>
+          <p className="text-sm sm:text-base text-gray-600">Sign up to get started with your account</p>
         </div>
 
         {error && (
@@ -198,7 +208,33 @@ const LoginPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
+          <div>
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => handleFieldChange('fullName', e.target.value)}
+                onBlur={() => handleFieldBlur('fullName', fullName)}
+                onMouseOut={() => handleFieldMouseOut('fullName', fullName)}
+                required
+                maxLength={validationRules?.fullName?.maxLength || 100}
+                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base transition-all ${
+                  fieldErrors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-purple-500'
+                }`}
+                placeholder="Enter your full name"
+              />
+            </div>
+            {fieldErrors.fullName && (
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                {fieldErrors.fullName}
+              </p>
+            )}
+          </div>
+
           <div>
             <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">Email Address</label>
             <div className="relative">
@@ -226,6 +262,32 @@ const LoginPage = () => {
           </div>
 
           <div>
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">Phone Number</label>
+            <div className="relative">
+              <Phone className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
+                onBlur={() => handleFieldBlur('phoneNumber', phoneNumber)}
+                onMouseOut={() => handleFieldMouseOut('phoneNumber', phoneNumber)}
+                required
+                maxLength={validationRules?.phoneNumber?.maxLength || 10}
+                className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base transition-all ${
+                  fieldErrors.phoneNumber ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-purple-500'
+                }`}
+                placeholder="Enter your phone number"
+              />
+            </div>
+            {fieldErrors.phoneNumber && (
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                {fieldErrors.phoneNumber}
+              </p>
+            )}
+          </div>
+
+          <div>
             <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -240,7 +302,7 @@ const LoginPage = () => {
                 className={`w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base transition-all ${
                   fieldErrors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-purple-500'
                 }`}
-                placeholder="Enter your password (min 8 chars, uppercase, lowercase, number, special)"
+                placeholder="Create a password (min 8 chars, uppercase, lowercase, number, special)"
               />
             </div>
             {fieldErrors.password && (
@@ -286,12 +348,6 @@ const LoginPage = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <a href="/forgot-password" className="text-xs sm:text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors">
-              Forgot password?
-            </a>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -300,19 +356,19 @@ const LoginPage = () => {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <RefreshCw className="w-5 h-5 animate-spin" />
-                Signing in...
+                Creating account...
               </span>
             ) : (
-              'Sign In'
+              'Create Account'
             )}
           </button>
         </form>
 
         <div className="mt-6 sm:mt-8 text-center">
           <p className="text-sm sm:text-base text-gray-600">
-            Don't have an account?{' '}
-            <a href="/register" className="text-purple-600 hover:text-purple-800 font-semibold transition-colors">
-              Sign up now
+            Already have an account?{' '}
+            <a href="/login" className="text-purple-600 hover:text-purple-800 font-semibold transition-colors">
+              Sign in now
             </a>
           </p>
         </div>
@@ -321,4 +377,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 
-import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../services/api';
 
 import { useNavigate } from 'react-router-dom';
 
-import { productAPI, vendorAPI, orderAPI, siteConfigAPI, categoryAPI, subCategoryAPI, userAPI, validationRulesAPI } from '../services/api';
+import { productAPI, vendorAPI, orderAPI, siteConfigAPI, categoryAPI, subCategoryAPI, userAPI, validationRulesAPI } from '../../services/api';
 
 import { 
 
@@ -69,39 +69,39 @@ import {
 
 
 
-import OverviewStats from '../components/admin/OverviewStats';
+import OverviewStats from '../../components/admin/OverviewStats';
 
-import ProductsSection from '../components/admin/ProductsSection';
+import ProductsSection from '../../components/admin/ProductsSection';
 
-import CategoriesSection from '../components/admin/categories/CategoriesSection';
+import CategoriesSection from '../../components/admin/categories/CategoriesSection';
 
-import SubCategoriesSection from '../components/admin/subcategories/SubCategoriesSection';
+import SubCategoriesSection from '../../components/admin/subcategories/SubCategoriesSection';
 
-import VendorsSection from '../components/admin/VendorsSection';
+import VendorsSection from '../../components/admin/VendorsSection';
 
-import OrdersSection from '../components/admin/OrdersSection';
+import OrdersSection from '../../components/admin/OrdersSection';
 
-import UsersSection from '../components/admin/users/UsersSection';
+import UsersSection from '../../components/admin/users/UsersSection';
 
-import SiteConfiguration from '../components/admin/site-config/SiteConfiguration';
+import SiteConfiguration from '../../components/admin/site-config/SiteConfiguration';
 
-import SettingsSection from '../components/admin/SettingsSection';
+import SettingsSection from '../../components/admin/SettingsSection';
 
-import ProductModal from '../components/admin/ProductModal';
+import ProductModal from '../../components/admin/ProductModal';
 
-import CategoryModal from '../components/admin/categories/CategoryModal';
+import CategoryModal from '../../components/admin/categories/CategoryModal';
 
-import SubCategoryModal from '../components/admin/subcategories/SubCategoryModal';
+import SubCategoryModal from '../../components/admin/subcategories/SubCategoryModal';
 
-import VendorModal from '../components/admin/VendorModal';
+import VendorModal from '../../components/admin/VendorModal';
 
-import UserModal from '../components/admin/users/UserModal';
+import UserModal from '../../components/admin/users/UserModal';
 
-import DeleteConfirmationModal from '../components/admin/DeleteConfirmationModal';
+import DeleteConfirmationModal from '../../components/admin/DeleteConfirmationModal';
 
-import ReviewsSection from '../components/admin/ReviewsSection';
+import ReviewsSection from '../../components/admin/ReviewsSection';
 
-import Toast from '../components/common/Toast';
+import Toast from '../../components/user/Toast';
 
 
 

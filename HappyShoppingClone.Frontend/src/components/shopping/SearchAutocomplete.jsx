@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Package, Folder, Tag } from 'lucide-react';
-import { searchAPI } from '../services/api';
 
 const SearchAutocomplete = ({ onSearch }) => {
   const [query, setQuery] = useState('');
@@ -25,9 +24,10 @@ const SearchAutocomplete = ({ onSearch }) => {
       if (query.length >= 2) {
         setLoading(true);
         try {
-          const response = await searchAPI.searchAll(query);
-          if (response.data.success) {
-            setResults(response.data.results);
+          const response = await fetch(`http://localhost:5041/api/search?q=${encodeURIComponent(query)}`);
+          const data = await response.json();
+          if (data.success) {
+            setResults(data.results);
             setIsOpen(true);
           }
         } catch (error) {
@@ -47,7 +47,7 @@ const SearchAutocomplete = ({ onSearch }) => {
   const handleResultClick = (type, item) => {
     setIsOpen(false);
     setQuery('');
-    
+
     switch (type) {
       case 'product':
         window.location.href = `/product/${item.id}`;

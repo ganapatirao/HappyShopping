@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { productAPI } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../services/api';
-import { useCart } from '../context/CartContext';
-import Toast from '../common/Toast';
+import { productAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../services/api';
+import { useCart } from '../../context/CartContext';
+import Toast from '../../components/user/Toast';
 import { 
   ShoppingCart, 
   Heart, 

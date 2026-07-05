@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../services/api';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../services/api';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, CreditCard, MapPin, Phone, User, Package, Truck, Shield, CheckCircle, Sparkles, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
-import { validateField, validateAddress, validatePaymentDetails, validateCheckout } from '../utils/validation';
-import { setValidationConfig, getAddressValidation } from '../utils/validationConfig';
-import Toast from '../components/Toast';
-import DeleteConfirmationModal from '../components/admin/DeleteConfirmationModal';
+import { validateField, validateAddress, validatePaymentDetails, validateCheckout } from '../../utils/validation';
+import { setValidationConfig, getAddressValidation } from '../../utils/validationConfig';
+import Toast from '../../components/user/Toast';
+import DeleteConfirmationModal from '../../components/admin/DeleteConfirmationModal';
 
 const CartPage = () => {
   const navigate = useNavigate();
