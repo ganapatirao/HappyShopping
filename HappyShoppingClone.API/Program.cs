@@ -1,4 +1,5 @@
 using HappyShoppingClone.API.Data;
+using HappyShoppingClone.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,14 @@ builder.Services.AddSwaggerGen();
 
 // Configure MongoDB context
 builder.Services.AddSingleton<MongoDbContext>();
+
+// Register Services
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<CartService>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
