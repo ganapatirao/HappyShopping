@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../services/api';
+import { siteConfigAPI, paymentAPI } from '../../services/api';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, CreditCard, MapPin, Phone, User, Package, Truck, Shield, CheckCircle, Sparkles, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { validateField, validateAddress, validatePaymentDetails, validateCheckout } from '../../utils/validation';
 import { setValidationConfig, getAddressValidation } from '../../utils/validationConfig';
@@ -52,10 +52,9 @@ const CartPage = () => {
     // Fetch validation configuration from backend
     const fetchValidationConfig = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/siteconfiguration`);
-        const data = await response.json();
-        if (data.success && data.configuration?.validation) {
-          setValidationConfig(data.configuration.validation);
+        const response = await siteConfigAPI.getConfiguration();
+        if (response.data.success && response.data.configuration?.validation) {
+          setValidationConfig(response.data.configuration.validation);
         }
       } catch (error) {
         console.error('Failed to fetch validation config:', error);
@@ -394,19 +393,13 @@ const CartPage = () => {
         paymentDetails: paymentDetails
       };
 
-      const response = await fetch(`${API_BASE_URL}/payment/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(checkoutRequest)
-      });
-
-      const data = await response.json();
-      if (data.success) {
+      const response = await paymentAPI.checkout(checkoutRequest);
+      if (response.data.success) {
         setToast({ show: true, message: 'Order placed successfully!', type: 'success' });
         clearCart();
         setCheckoutStep('success');
       } else {
-        setToast({ show: true, message: 'Failed to place order: ' + (data.error || 'Unknown error'), type: 'error' });
+        setToast({ show: true, message: 'Failed to place order: ' + (response.data.error || 'Unknown error'), type: 'error' });
       }
     } catch (error) {
       console.error('Error placing order:', error);

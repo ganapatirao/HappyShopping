@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../services/api';
+import { reviewAPI } from '../../services/api';
 
 import { useNavigate } from 'react-router-dom';
 
-import { productAPI, vendorAPI, orderAPI, siteConfigAPI, categoryAPI, subCategoryAPI, userAPI, validationRulesAPI } from '../../services/api';
+import { productAPI, vendorAPI, orderAPI, siteConfigAPI, categoryAPI, subCategoryAPI, userAPI } from '../../services/api';
 
 import { 
 
@@ -640,10 +640,9 @@ const AdminDashboard = () => {
 
       // Load reviews
       try {
-        const reviewsRes = await fetch(`${API_BASE_URL}/review`);
-        const reviewsData = await reviewsRes.json();
-        if (reviewsData.success) {
-          setReviews(reviewsData.reviews);
+        const reviewsRes = await reviewAPI.getAll();
+        if (reviewsRes.data.success) {
+          setReviews(reviewsRes.data.reviews);
         }
       } catch (error) {
         console.error('Failed to load reviews');
@@ -1357,12 +1356,8 @@ const AdminDashboard = () => {
   // Review handlers
   const handleApproveReview = async (reviewId, isApproved) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/review/${reviewId}/approve`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isApproved })
-      });
-      const data = await response.json();
+      const response = await reviewAPI.approve(reviewId, { isApproved });
+      const data = response.data;
       if (data.success) {
         setReviews(reviews.map(r => r.id === reviewId ? { ...r, isApproved } : r));
         setToast({
@@ -1391,11 +1386,8 @@ const AdminDashboard = () => {
 
   const handleConfirmDeleteReview = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/review/${deleteTarget.id}`, {
-        method: 'DELETE'
-      });
-      const data = await response.json();
-      if (data.success) {
+      const response = await reviewAPI.delete(deleteTarget.id);
+      if (response.data.success) {
         setReviews(reviews.filter(r => r.id !== deleteTarget.id));
         setToast({
           show: true,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { productAPI, categoryAPI, subCategoryAPI, API_BASE_URL } from '../../services/api';
+import { productAPI, categoryAPI, subCategoryAPI, userAPI } from '../../services/api';
 import ProductCard from '../shared/common/ProductCard';
 import { SlidersHorizontal, X, ChevronDown, Star, Minus, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -42,13 +42,9 @@ const ShoppingPage = () => {
   const loadWishlist = async () => {
     if (isAuthenticated && user) {
       try {
-        const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setWishlist(data.wishlist || []);
+        const response = await userAPI.getWishlist(user.id);
+        if (response.data.success) {
+          setWishlist(response.data.wishlist || []);
         }
       } catch (error) {
         console.error('Error loading wishlist:', error);
@@ -65,23 +61,14 @@ const ShoppingPage = () => {
     try {
       if (wishlist.includes(productId)) {
         // Remove from wishlist
-        const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist/${productId}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await response.json();
-        if (data.success) {
+        const response = await userAPI.removeFromWishlist(user.id, productId);
+        if (response.data.success) {
           setWishlist(wishlist.filter(id => id !== productId));
         }
       } else {
         // Add to wishlist
-        const response = await fetch(`${API_BASE_URL}/user/${user.id}/wishlist`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId })
-        });
-        const data = await response.json();
-        if (data.success) {
+        const response = await userAPI.addToWishlist(user.id, { productId });
+        if (response.data.success) {
           setWishlist([...wishlist, productId]);
         }
       }

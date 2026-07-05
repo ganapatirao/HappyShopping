@@ -25,7 +25,7 @@ const SearchAutocomplete = ({ onSearch }) => {
       if (query.length >= 2) {
         setLoading(true);
         try {
-          const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+          const response = await fetch(`${API_BASE_URL}/product/search/all?query=${encodeURIComponent(query)}`);
           const data = await response.json();
           if (data.success) {
             setResults(data.results);

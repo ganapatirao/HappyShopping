@@ -27,9 +27,7 @@ export const vendorAPI = {
   register: (data) => api.post('/vendor/register', data),
   getAll: () => api.get('/vendor'),
   getById: (id) => api.get(`/vendor/${id}`),
-  create: (data) => api.post('/vendor', data),
   update: (id, data) => api.put(`/vendor/${id}`, data),
-  delete: (id) => api.delete(`/vendor/${id}`),
   verify: (id) => api.post(`/vendor/${id}/verify`),
 };
 
@@ -94,6 +92,9 @@ export const companyAPI = {
   getById: (id) => api.get(`/company/${id}`),
   getByCategory: (category) => api.get(`/company/category/${category}`),
   getFeatured: () => api.get('/company/featured'),
+  create: (data) => api.post('/company', data),
+  update: (id, data) => api.put(`/company/${id}`, data),
+  delete: (id) => api.delete(`/company/${id}`),
 };
 
 // Cart API
@@ -113,26 +114,52 @@ export const siteConfigAPI = {
   updateHeader: (data) => api.put('/siteconfiguration/header', data),
   updateFooter: (data) => api.put('/siteconfiguration/footer', data),
   updateTheme: (data) => api.put('/siteconfiguration/theme', data),
+  updateValidation: (data) => api.put('/siteconfiguration/validation', data),
 };
 
 // User API
 export const userAPI = {
   getAll: () => api.get('/user'),
   getById: (id) => api.get(`/user/${id}`),
-  create: (data) => api.post('/user', data),
   update: (id, data) => api.put(`/user/${id}`, data),
   delete: (id) => api.delete(`/user/${id}`),
   updateRole: (id, data) => api.put(`/user/${id}/role`, data),
   toggleActive: (id) => api.put(`/user/${id}/toggle-active`),
+  changePassword: (id, data) => api.post(`/user/${id}/change-password`, data),
+  updatePreferences: (id, data) => api.put(`/user/${id}/preferences`, data),
+  addToWishlist: (id, data) => api.post(`/user/${id}/wishlist`, data),
+  removeFromWishlist: (id, productId) => api.delete(`/user/${id}/wishlist/${productId}`),
+  getWishlist: (id) => api.get(`/user/${id}/wishlist`),
+  validateAddress: (userId, data) => api.post(`/user/${userId}/addresses/validate`, data),
+  validatePaymentMethod: (userId, data) => api.post(`/user/${userId}/payment-methods/validate`, data),
 };
 
-// Validation Rules API
-export const validationRulesAPI = {
-  getAll: () => api.get('/auth/validation-rules'),
-  getByEntity: (entity) => api.get(`/auth/validation-rules/entity/${entity}`),
-  create: (data) => api.post('/auth/validation-rules', data),
-  update: (id, data) => api.put(`/auth/validation-rules/${id}`, data),
-  delete: (id) => api.delete(`/auth/validation-rules/${id}`),
+// Payment API
+export const paymentAPI = {
+  checkout: (data) => api.post('/payment/checkout', data),
+  getByOrder: (orderId) => api.get(`/payment/order/${orderId}`),
+  getByUser: (userId) => api.get(`/payment/user/${userId}`),
+  updateStatus: (id, data) => api.put(`/payment/${id}/status`, data),
+  refund: (id, data) => api.post(`/payment/${id}/refund`, data),
+};
+
+// Review API
+export const reviewAPI = {
+  getByProduct: (productId) => api.get(`/review/product/${productId}`),
+  getByUser: (userId) => api.get(`/review/user/${userId}`),
+  getById: (id) => api.get(`/review/${id}`),
+  create: (data) => api.post('/review', data),
+  update: (id, data) => api.put(`/review/${id}`, data),
+  delete: (id) => api.delete(`/review/${id}`),
+  markHelpful: (id, data) => api.post(`/review/${id}/helpful`, data),
+  reply: (id, data) => api.post(`/review/${id}/reply`, data),
+  approve: (id, data) => api.put(`/review/${id}/approve`, data),
+  getProductSummary: (productId) => api.get(`/review/product/${productId}/summary`),
+};
+
+// Seed API
+export const seedAPI = {
+  seedDatabase: (data) => api.post('/seed', data),
 };
 
 export default api;

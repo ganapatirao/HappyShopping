@@ -86,7 +86,7 @@ export const useVendorOperations = (loadDashboardData, validateForm, defaultVali
         await vendorAPI.update(editingVendor.id, vendorForm);
         alert('Vendor updated successfully!');
       } else {
-        await vendorAPI.create(vendorForm);
+        await vendorAPI.register(vendorForm);
         alert('Vendor created successfully!');
       }
       handleCloseVendorModal();

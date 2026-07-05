@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { productAPI } from '../../services/api';
+import { productAPI, reviewAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import Toast from '../shared/common/Toast';
 import { 
@@ -64,16 +63,14 @@ const ProductDetailPage = () => {
 
   const loadReviews = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/review/product/${id}`);
-      const data = await response.json();
-      if (data.success) {
-        setReviews(data.reviews);
+      const response = await reviewAPI.getByProduct(id);
+      if (response.data.success) {
+        setReviews(response.data.reviews);
       }
       
-      const summaryResponse = await fetch(`${API_BASE_URL}/review/product/${id}/summary`);
-      const summaryData = await summaryResponse.json();
-      if (summaryData.success) {
-        setReviewSummary(summaryData.summary);
+      const summaryResponse = await reviewAPI.getProductSummary(id);
+      if (summaryResponse.data.success) {
+        setReviewSummary(summaryResponse.data.summary);
       }
     } catch (error) {
     }
