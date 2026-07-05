@@ -101,7 +101,7 @@ import DeleteConfirmationModal from '../components/admin/DeleteConfirmationModal
 
 import ReviewsSection from '../components/admin/ReviewsSection';
 
-import Toast from '../components/Toast';
+import Toast from '../components/common/Toast';
 
 
 

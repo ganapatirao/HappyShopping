@@ -3,7 +3,7 @@ import { Search, ShoppingBag, User, Menu, Heart, Download, LogOut } from 'lucide
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { siteConfigAPI } from '../services/api';
-import SearchAutocomplete from './SearchAutocomplete';
+import SearchAutocomplete from '../common/SearchAutocomplete';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');

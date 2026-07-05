@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
-import Header from './components/Header'
-import Footer from './components/Footer'
+import Header from './components/layout/Header'
+import Footer from './components/layout/Footer'
 import HomePage from './pages/HomePage'
 import ShoppingPage from './pages/ShoppingPage'
 import ProductDetailPage from './pages/ProductDetailPage'
@@ -13,7 +13,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import UserDashboard from './pages/UserDashboard'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
-import './App.css'
+import './styles/App.css'
 
 function App() {
   return (
