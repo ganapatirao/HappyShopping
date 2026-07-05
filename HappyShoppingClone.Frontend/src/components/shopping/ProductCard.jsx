@@ -1,6 +1,6 @@
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useCart } from '../../../context/CartContext';
+import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import Toast from '../user/Toast';
 
