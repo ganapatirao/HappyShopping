@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Package, Folder, Tag } from 'lucide-react';
+import { API_BASE_URL } from '../../../services/api.js';
 
 const SearchAutocomplete = ({ onSearch }) => {
   const [query, setQuery] = useState('');
@@ -24,7 +25,7 @@ const SearchAutocomplete = ({ onSearch }) => {
       if (query.length >= 2) {
         setLoading(true);
         try {
-          const response = await fetch(`http://localhost:5041/api/search?q=${encodeURIComponent(query)}`);
+          const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
           const data = await response.json();
           if (data.success) {
             setResults(data.results);
