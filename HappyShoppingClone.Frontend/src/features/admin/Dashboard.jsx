@@ -298,6 +298,8 @@ const AdminDashboard = () => {
 
     subCategoryId: '',
 
+    vendorId: '',
+
     stock: '',
 
     imageBase64: [],
@@ -1450,6 +1452,8 @@ const AdminDashboard = () => {
 
         subCategoryId: product.subCategoryId || '',
 
+        vendorId: product.vendorId || product.vendorId || '',
+
         stock: product.stock,
 
         isActive: product.isActive,
@@ -1578,6 +1582,8 @@ const AdminDashboard = () => {
 
       subCategoryId: '',
 
+      vendorId: '',
+
       stock: '',
 
       imageBase64: [],
@@ -1610,7 +1616,7 @@ const AdminDashboard = () => {
 
         stock: parseInt(productForm.stock),
 
-        vendorId: 'admin',
+        vendorId: productForm.vendorId,
 
         companyId: 'admin',
 
@@ -2485,31 +2491,19 @@ const AdminDashboard = () => {
             {/* Product Modal */}
 
             <ProductModal
-
               show={showProductModal}
-
               onClose={handleCloseProductModal}
-
               onSave={handleSaveProduct}
-
               editingProduct={editingProduct}
-
               productForm={productForm}
-
               setProductForm={setProductForm}
-
               categories={categories}
-
               subCategories={subCategories}
-
+              vendors={vendors}
               handleImageDrop={handleImageDrop}
-
               convertToBase64={convertToBase64}
-
               handleRemoveImage={handleRemoveImage}
-
-              showToast={setToast}
-
+              showToast={(message, type) => setToast({ show: true, message, type })}
             />
 
 

@@ -11,6 +11,7 @@ const ProductModal = ({
   setProductForm, 
   categories,
   subCategories,
+  vendors,
   handleImageDrop,
   convertToBase64,
   handleRemoveImage,
@@ -321,6 +322,29 @@ const ProductModal = ({
                   <span className="text-xs text-red-700 font-medium">{validationErrors.stock}</span>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Vendor */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
+              Vendor <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                value={productForm.vendorId || ''}
+                onChange={(e) => setProductForm({ ...productForm, vendorId: e.target.value })}
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all appearance-none bg-white"
+              >
+                <option value="">Select a vendor</option>
+                {vendors && vendors.map((vendor) => (
+                  <option key={vendor.id || vendor._id || vendor.Id} value={vendor.id || vendor._id || vendor.Id}>
+                    {vendor.companyName || vendor.displayName || vendor.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">▼</span>
             </div>
           </div>
 

@@ -35,7 +35,7 @@ const Toast = ({ show, message, type = 'success', onClose, duration = 3000 }) =>
   };
 
   return (
-    <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${bgColors[type]} animate-slide-in`}>
+    <div className={`fixed top-4 right-4 z-[9999] flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${bgColors[type]} animate-slide-in`}>
       {icons[type]}
       <span className="text-sm font-medium text-gray-800">{message}</span>
       <button
