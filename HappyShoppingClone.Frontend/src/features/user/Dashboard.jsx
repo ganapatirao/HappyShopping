@@ -526,10 +526,15 @@ const UserDashboard = () => {
   };
 
   const handleSaveAddress = async () => {
-    if (!await validateAddressForm()) {
+    // Simple client-side validation
+    if (!addressForm.fullName || !addressForm.phone || !addressForm.addressLine1 || !addressForm.city || !addressForm.state || !addressForm.zipCode) {
+      showToast('Please fill in all required fields', 'error');
       return;
     }
-    
+
+    console.log('Saving address:', addressForm);
+    console.log('User ID:', user.id);
+
     try {
       const addressData = {
         fullName: addressForm.fullName,
@@ -545,12 +550,16 @@ const UserDashboard = () => {
       };
 
       if (editingAddress) {
-        const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${editingAddress.id}`, {
+        const url = `${API_BASE_URL}/user/${user.id}/addresses/${editingAddress.id}`;
+        console.log('PUT URL:', url);
+        const response = await fetch(url, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...addressData, id: editingAddress.id })
         });
+        console.log('PUT Response status:', response.status);
         const result = await response.json();
+        console.log('PUT Response:', result);
         if (result.success) {
           await loadAddresses();
           handleCloseAddressModal();
@@ -560,12 +569,16 @@ const UserDashboard = () => {
           showToast('Failed to update address', 'error');
         }
       } else {
-        const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses`, {
+        const url = `${API_BASE_URL}/user/${user.id}/addresses`;
+        console.log('POST URL:', url);
+        const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(addressData)
         });
+        console.log('POST Response status:', response.status);
         const result = await response.json();
+        console.log('POST Response:', result);
         if (result.success) {
           await loadAddresses();
           handleCloseAddressModal();
@@ -576,6 +589,7 @@ const UserDashboard = () => {
         }
       }
     } catch (error) {
+      console.error('Error saving address:', error);
       showToast('Error saving address', 'error');
     }
   };

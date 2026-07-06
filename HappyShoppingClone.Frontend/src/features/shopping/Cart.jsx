@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { siteConfigAPI, paymentAPI } from '../../services/api';
+import { API_BASE_URL } from '../../services/api';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, CreditCard, MapPin, Phone, User, Package, Truck, Shield, CheckCircle, Sparkles, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { validateField, validateAddress, validatePaymentDetails, validateCheckout } from '../../utils/validation';
 import { setValidationConfig, getAddressValidation } from '../../utils/validationConfig';
@@ -192,12 +193,19 @@ const CartPage = () => {
         isDefault: isDefaultAddress
       };
 
-      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses`, {
+      console.log('Saving address from cart:', addressData);
+      console.log('User ID:', user.id);
+
+      const url = `${API_BASE_URL}/user/${user.id}/addresses`;
+      console.log('POST URL:', url);
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(addressData)
       });
+      console.log('Response status:', response.status);
       const result = await response.json();
+      console.log('Response:', result);
       if (result.success) {
         await loadSavedAddresses();
         setToast({ show: true, message: 'Address saved successfully!', type: 'success' });
@@ -205,6 +213,7 @@ const CartPage = () => {
         setToast({ show: true, message: 'Failed to save address', type: 'error' });
       }
     } catch (error) {
+      console.error('Error saving address:', error);
       setToast({ show: true, message: 'Error saving address', type: 'error' });
     }
   };
