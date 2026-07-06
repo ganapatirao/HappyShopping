@@ -16,6 +16,17 @@ public class ReviewController : ControllerBase
         _context = context;
     }
 
+    [HttpGet]
+    public async Task<ActionResult> GetAllReviews()
+    {
+        var reviews = await _context.Reviews
+            .Find(_ => true)
+            .SortByDescending(r => r.CreatedAt)
+            .ToListAsync();
+        
+        return Ok(new { success = true, reviews });
+    }
+
     [HttpGet("product/{productId}")]
     public async Task<ActionResult> GetReviewsByProduct(string productId)
     {

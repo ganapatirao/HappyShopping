@@ -28,6 +28,7 @@ export const vendorAPI = {
   getAll: () => api.get('/vendor'),
   getById: (id) => api.get(`/vendor/${id}`),
   update: (id, data) => api.put(`/vendor/${id}`, data),
+  delete: (id) => api.delete(`/vendor/${id}`),
   verify: (id) => api.post(`/vendor/${id}/verify`),
 };
 
@@ -58,6 +59,8 @@ export const orderAPI = {
   getById: (id) => api.get(`/order/${id}`),
   updateStatus: (id, data) => api.put(`/order/${id}/status`, data),
   updatePayment: (id, data) => api.put(`/order/${id}/payment`, data),
+  updateTracking: (id, data) => api.put(`/order/${id}/tracking`, data),
+  delete: (id) => api.delete(`/order/${id}`),
 };
 
 // Category API

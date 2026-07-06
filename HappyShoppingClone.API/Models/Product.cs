@@ -66,6 +66,22 @@ public class Product
     
     public List<ProductSpecification> Specifications { get; set; } = new();
     
+    public List<string> Highlights { get; set; } = new();
+    
+    public ProductDeliveryInfo DeliveryInfo { get; set; } = new();
+    
+    public List<string> SimilarProductIds { get; set; } = new();
+    
+    public List<ProductOffer> Offers { get; set; } = new();
+    
+    public string Brand { get; set; } = string.Empty;
+    
+    public string Manufacturer { get; set; } = string.Empty;
+    
+    public string CountryOfOrigin { get; set; } = string.Empty;
+    
+    public string Warranty { get; set; } = string.Empty;
+    
     public bool IsActive { get; set; } = true;
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -88,6 +104,25 @@ public class ProductSpecification
 {
     public string Key { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+}
+
+public class ProductDeliveryInfo
+{
+    public bool FreeDelivery { get; set; } = true;
+    public int DeliveryDays { get; set; } = 5;
+    public string DeliveryType { get; set; } = "Standard"; // Standard, Express, Same Day
+    public bool CashOnDeliveryAvailable { get; set; } = true;
+    public int ReturnDays { get; set; } = 7;
+    public bool FreeReturn { get; set; } = true;
+    public string DeliveryAreas { get; set; } = "All India";
+}
+
+public class ProductOffer
+{
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string? ValidUntil { get; set; }
+    public string? PromoCode { get; set; }
 }
 
 public class ProductValidationRules

@@ -1,7 +1,11 @@
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace HappyShoppingClone.API.Models;
 
 public class Vendor
 {
+    [BsonId]
+    [BsonRepresentation(MongoDB.Bson.BsonType.String)]
     public string? Id { get; set; }
     public string CompanyName { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;

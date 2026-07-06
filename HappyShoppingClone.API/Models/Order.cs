@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace HappyShoppingClone.API.Models;
 
 public class Order
 {
+    [JsonPropertyName("_id")]
     public string? Id { get; set; }
     public string UserId { get; set; } = string.Empty;
     public List<OrderItem> Items { get; set; } = new();

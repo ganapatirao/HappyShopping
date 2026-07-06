@@ -960,13 +960,29 @@ const UserDashboard = () => {
                 <p className="text-purple-200 text-xs sm:text-sm">Welcome back, {user?.fullName || 'User'}!</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="bg-white text-purple-600 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-pink-100 transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-            >
-              <LogOut size={14} sm:size={16} md:size={18} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => navigate('/shopping')}
+                className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
+              >
+                <ShoppingBag size={16} />
+                <span>Shop Now</span>
+              </button>
+              <button
+                onClick={() => navigate('/cart')}
+                className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
+              >
+                <Package size={16} />
+                <span>Cart</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-white text-purple-600 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-pink-100 transition-colors flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              >
+                <LogOut size={14} sm:size={16} md:size={18} />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1012,6 +1028,41 @@ const UserDashboard = () => {
                       <span className="font-medium text-sm">{tab.label}</span>
                     </button>
                   ))}
+                  <div className="pt-4 border-t mt-4">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Quick Navigation</h3>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          navigate('/shopping');
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-700"
+                      >
+                        <ShoppingBag size={18} />
+                        <span className="font-medium text-sm">Shop Now</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/cart');
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-700"
+                      >
+                        <Package size={18} />
+                        <span className="font-medium text-sm">Cart</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-red-50 text-red-600"
+                      >
+                        <LogOut size={18} />
+                        <span className="font-medium text-sm">Logout</span>
+                      </button>
+                    </div>
+                  </div>
                 </nav>
               </div>
             </div>
@@ -1059,6 +1110,32 @@ const UserDashboard = () => {
                     <span className="font-medium text-xs sm:text-sm md:text-base">{tab.label}</span>
                   </button>
                 ))}
+                <div className="pt-4 border-t mt-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Quick Navigation</h3>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => navigate('/shopping')}
+                      className="w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-3 rounded-lg transition-colors hover:bg-gray-100 text-gray-700"
+                    >
+                      <ShoppingBag size={16} sm:size={18} md:size={20} />
+                      <span className="font-medium text-xs sm:text-sm md:text-base">Shop Now</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/cart')}
+                      className="w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-3 rounded-lg transition-colors hover:bg-gray-100 text-gray-700"
+                    >
+                      <Package size={16} sm:size={18} md:size={20} />
+                      <span className="font-medium text-xs sm:text-sm md:text-base">Cart</span>
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-3 rounded-lg transition-colors hover:bg-red-50 text-red-600"
+                    >
+                      <LogOut size={16} sm:size={18} md:size={20} />
+                      <span className="font-medium text-xs sm:text-sm md:text-base">Logout</span>
+                    </button>
+                  </div>
+                </div>
               </nav>
             </div>
           </aside>

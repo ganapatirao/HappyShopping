@@ -7,17 +7,17 @@ import { useNavigate } from 'react-router-dom';
 
 import { productAPI, vendorAPI, orderAPI, siteConfigAPI, categoryAPI, subCategoryAPI, userAPI } from '../../services/api';
 
-import { 
+import {
 
-  LayoutDashboard, 
+  LayoutDashboard,
 
-  Package, 
+  Package,
 
-  Users, 
+  Users,
 
-  ShoppingCart, 
+  ShoppingCart,
 
-  Settings, 
+  Settings,
 
   TrendingUp,
 
@@ -63,7 +63,11 @@ import {
 
   MessageCircle,
 
-  Star
+  Star,
+
+  ShoppingBag,
+
+  User
 
 } from 'lucide-react';
 
@@ -304,30 +308,54 @@ const AdminDashboard = () => {
 
     isTrending: false,
 
+    // Enhanced product fields
+    highlights: [],
+    newHighlight: '',
+    deliveryInfo: {
+      freeDelivery: true,
+      deliveryDays: 5,
+      deliveryType: 'Standard',
+      deliveryAreas: 'All India',
+      returnDays: 7,
+      freeReturn: true,
+      cashOnDeliveryAvailable: true
+    },
+    offers: [],
+    newOffer: {
+      title: '',
+      description: '',
+      promoCode: '',
+      validUntil: ''
+    },
+    specifications: [],
+    newSpec: {
+      key: '',
+      value: ''
+    },
+    brand: '',
+    manufacturer: '',
+    countryOfOrigin: '',
+    warranty: ''
+
   });
 
 
 
   const [vendorForm, setVendorForm] = useState({
-
-    name: '',
-
+    companyName: '',
+    displayName: '',
     email: '',
-
-    phone: '',
-
-    address: '',
-
-    businessName: '',
-
-    businessType: '',
-
+    password: '',
+    phoneNumber: '',
+    logo: '',
+    coverImage: '',
     description: '',
-
-    isActive: true,
-
+    businessType: '',
+    gstNumber: '',
+    panNumber: '',
+    businessAddress: {},
     isVerified: false,
-
+    isActive: true,
   });
 
   
@@ -622,7 +650,7 @@ const AdminDashboard = () => {
       setLoading(true);
 
 
-      const [productsRes, vendorsRes, configRes, categoriesRes, subCategoriesRes, ordersRes] = await Promise.all([
+      const [productsRes, vendorsRes, configRes, categoriesRes, subCategoriesRes] = await Promise.all([
 
         productAPI.getAll(),
 
@@ -632,23 +660,21 @@ const AdminDashboard = () => {
 
         categoryAPI.getAll(),
 
-        subCategoryAPI.getAll(),
-
-        orderAPI.getAll()
+        subCategoryAPI.getAll()
 
       ]);
 
-      // Load reviews
+      // Load orders separately to handle errors gracefully
+      let ordersData;
       try {
-        const reviewsRes = await reviewAPI.getAll();
-        if (reviewsRes.data.success) {
-          setReviews(reviewsRes.data.reviews);
-        }
-      } catch (error) {
-        console.error('Failed to load reviews');
+        console.log('Fetching orders from API...');
+        ordersData = await orderAPI.getAll();
+        console.log('Orders API response:', ordersData);
+        console.log('Orders data:', ordersData.data);
+      } catch (orderError) {
+        console.error('Failed to load orders:', orderError);
+        ordersData = { data: { success: false, orders: [] } };
       }
-
-      
 
       // Try to load users separately to handle 404 gracefully
 
@@ -697,27 +723,21 @@ const AdminDashboard = () => {
       
 
       if (vendorsRes.data.success) {
-
-        setVendors(vendorsRes.data.vendors);
-
-        const vendors = vendorsRes.data.vendors;
-
-        const activeVendors = vendors.filter(v => v.isActive).length;
-
-        const verifiedVendors = vendors.filter(v => v.isVerified).length;
-
-        setDashboardStats(prev => ({
-
-          ...prev,
-
-          totalVendors: vendors.length,
-
-          activeVendors,
-
-          verifiedVendors,
-
+        const normalizedVendors = vendorsRes.data.vendors.map(vendor => ({
+          ...vendor,
+          id: vendor.id || vendor._id || vendor.Id
         }));
-
+        setVendors(normalizedVendors);
+        
+        const vendors = normalizedVendors;
+        const activeVendors = vendors.filter(v => v.isActive).length;
+        const verifiedVendors = vendors.filter(v => v.isVerified).length;
+        setDashboardStats(prev => ({
+          ...prev,
+          totalVendors: vendors.length,
+          activeVendors,
+          verifiedVendors,
+        }));
       }
 
 
@@ -768,17 +788,17 @@ const AdminDashboard = () => {
 
 
 
-      if (ordersRes.data.success) {
+      if (ordersData.data.success) {
 
-        setOrders(ordersRes.data.orders);
+        setOrders(ordersData.data.orders);
 
-        const orders = ordersRes.data.orders;
+        const orders = ordersData.data.orders;
 
-        const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+        const pendingOrders = orders.filter(o => o.Status === 'Pending' || o.Status === 'Confirmed').length;
 
-        const completedOrders = orders.filter(o => o.status === 'delivered' || o.status === 'completed').length;
+        const completedOrders = orders.filter(o => o.Status === 'Delivered').length;
 
-        const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        const totalRevenue = orders.reduce((sum, order) => sum + (order.TotalAmount || 0), 0);
 
         setDashboardStats(prev => ({
 
@@ -1440,6 +1460,35 @@ const AdminDashboard = () => {
 
         imageBase64: product.imageBase64 || product.imageUrls || [],
 
+        // Enhanced product fields
+        highlights: product.highlights || [],
+        newHighlight: '',
+        deliveryInfo: product.deliveryInfo || {
+          freeDelivery: true,
+          deliveryDays: 5,
+          deliveryType: 'Standard',
+          deliveryAreas: 'All India',
+          returnDays: 7,
+          freeReturn: true,
+          cashOnDeliveryAvailable: true
+        },
+        offers: product.offers || [],
+        newOffer: {
+          title: '',
+          description: '',
+          promoCode: '',
+          validUntil: ''
+        },
+        specifications: product.specifications || [],
+        newSpec: {
+          key: '',
+          value: ''
+        },
+        brand: product.brand || '',
+        manufacturer: product.manufacturer || '',
+        countryOfOrigin: product.countryOfOrigin || '',
+        warranty: product.warranty || ''
+
       });
 
     } else {
@@ -1469,6 +1518,35 @@ const AdminDashboard = () => {
         isFeatured: false,
 
         isTrending: false,
+
+        // Enhanced product fields
+        highlights: [],
+        newHighlight: '',
+        deliveryInfo: {
+          freeDelivery: true,
+          deliveryDays: 5,
+          deliveryType: 'Standard',
+          deliveryAreas: 'All India',
+          returnDays: 7,
+          freeReturn: true,
+          cashOnDeliveryAvailable: true
+        },
+        offers: [],
+        newOffer: {
+          title: '',
+          description: '',
+          promoCode: '',
+          validUntil: ''
+        },
+        specifications: [],
+        newSpec: {
+          key: '',
+          value: ''
+        },
+        brand: '',
+        manufacturer: '',
+        countryOfOrigin: '',
+        warranty: ''
 
       });
 
@@ -1544,6 +1622,16 @@ const AdminDashboard = () => {
 
         imageBase64: productForm.imageBase64,
 
+        // Enhanced product fields
+        highlights: productForm.highlights,
+        deliveryInfo: productForm.deliveryInfo,
+        offers: productForm.offers,
+        specifications: productForm.specifications,
+        brand: productForm.brand,
+        manufacturer: productForm.manufacturer,
+        countryOfOrigin: productForm.countryOfOrigin,
+        warranty: productForm.warranty
+
       };
 
       
@@ -1616,63 +1704,44 @@ const AdminDashboard = () => {
   // Vendor handlers
 
   const handleOpenVendorModal = (vendor = null) => {
-
     if (vendor) {
-
       setEditingVendor(vendor);
-
       setVendorForm({
-
-        name: vendor.name,
-
-        email: vendor.email,
-
-        phone: vendor.phone,
-
-        address: vendor.address,
-
-        businessName: vendor.businessName,
-
-        businessType: vendor.businessType,
-
-        description: vendor.description,
-
-        isActive: vendor.isActive,
-
-        isVerified: vendor.isVerified,
-
+        companyName: vendor.companyName || vendor.businessName || '',
+        displayName: vendor.displayName || vendor.contactPerson || '',
+        email: vendor.email || '',
+        password: vendor.password || '',
+        phoneNumber: vendor.phoneNumber || vendor.phone || '',
+        logo: vendor.logo || '',
+        coverImage: vendor.coverImage || '',
+        description: vendor.description || '',
+        businessType: vendor.businessType || '',
+        gstNumber: vendor.gstNumber || '',
+        panNumber: vendor.panNumber || '',
+        businessAddress: vendor.businessAddress || vendor.address || {},
+        isVerified: vendor.isVerified !== undefined ? vendor.isVerified : false,
+        isActive: vendor.isActive !== undefined ? vendor.isActive : true,
       });
-
     } else {
-
       setEditingVendor(null);
-
       setVendorForm({
-
-        name: '',
-
+        companyName: '',
+        displayName: '',
         email: '',
-
-        phone: '',
-
-        address: '',
-
-        businessName: '',
-
-        businessType: '',
-
+        password: '',
+        phoneNumber: '',
+        logo: '',
+        coverImage: '',
         description: '',
-
-        isActive: true,
-
+        businessType: '',
+        gstNumber: '',
+        panNumber: '',
+        businessAddress: {},
         isVerified: false,
-
+        isActive: true,
       });
-
     }
-
     setShowVendorModal(true);
-
   };
 
 
@@ -1685,23 +1754,20 @@ const AdminDashboard = () => {
 
     setVendorForm({
 
-      name: '',
-
+      companyName: '',
+      displayName: '',
       email: '',
-
-      phone: '',
-
-      address: '',
-
-      businessName: '',
-
-      businessType: '',
-
+      password: '',
+      phoneNumber: '',
+      logo: '',
+      coverImage: '',
       description: '',
-
-      isActive: true,
-
+      businessType: '',
+      gstNumber: '',
+      panNumber: '',
+      businessAddress: {},
       isVerified: false,
+      isActive: true,
 
     });
 
@@ -1712,83 +1778,95 @@ const AdminDashboard = () => {
 
 
   const handleSaveVendor = async () => {
-
     // Validate form before submission
-
     const vendorRules = {
-
-      name: { required: true, minLength: 2, maxLength: 100 },
-
+      companyName: { required: true, minLength: 2, maxLength: 200 },
+      displayName: { required: true, minLength: 2, maxLength: 100 },
       email: { required: true, pattern: defaultValidationRules.email },
-
-      phone: { required: true, pattern: defaultValidationRules.phone },
-
-      businessName: { required: true, minLength: 2, maxLength: 200 },
-
+      password: editingVendor ? { minLength: 6 } : { required: true, minLength: 6 },
+      phoneNumber: { required: true, pattern: defaultValidationRules.phone },
       businessType: { required: true },
-
-      address: { maxLength: 500 },
-
       description: { maxLength: 1000 }
-
     };
-
     
-
     if (!validateForm(vendorForm, vendorRules)) {
-
-      alert('Please fix the validation errors before saving');
-
+      setToast({
+        show: true,
+        message: 'Please fix the validation errors before saving',
+        type: 'error'
+      });
       return;
-
     }
-
     
-
     try {
-
       if (editingVendor) {
-
-        await vendorAPI.update(editingVendor.id, vendorForm);
-
-        alert('Vendor updated successfully!');
-
+        const vendorId = editingVendor.id || editingVendor._id;
+        if (!vendorId) {
+          setToast({
+            show: true,
+            message: 'Error: Vendor ID is missing. Cannot update vendor.',
+            type: 'error'
+          });
+          return;
+        }
+        // Don't send password on update unless it's changed
+        const updateData = { ...vendorForm };
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+        await vendorAPI.update(vendorId, updateData);
+        setToast({
+          show: true,
+          message: 'Vendor updated successfully!',
+          type: 'success'
+        });
       } else {
-
-        await vendorAPI.create(vendorForm);
-
-        alert('Vendor created successfully!');
-
+        const response = await vendorAPI.register(vendorForm);
+        if (response.data.success && response.data.vendor) {
+          // Normalize the returned vendor data
+          const newVendor = {
+            ...response.data.vendor,
+            id: response.data.vendor.id || response.data.vendor._id || response.data.vendor.Id
+          };
+          setToast({
+            show: true,
+            message: 'Vendor created successfully!',
+            type: 'success'
+          });
+        } else {
+          throw new Error('Vendor creation failed');
+        }
       }
-
       handleCloseVendorModal();
-
       loadDashboardData();
-
     } catch (error) {
-
-      alert('Error saving vendor');
-
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Error saving vendor';
+      setToast({
+        show: true,
+        message: errorMessage,
+        type: 'error'
+      });
     }
-
   };
 
 
 
   const handleDeleteVendor = (vendor) => {
-
+    const vendorId = vendor.id || vendor._id || vendor.Id;
+    if (!vendorId) {
+      setToast({
+        show: true,
+        message: 'Error: Vendor ID is missing. Cannot delete vendor.',
+        type: 'error'
+      });
+      return;
+    }
     setDeleteTarget({
-
       type: 'vendor',
-
-      id: vendor.id,
-
-      name: vendor.name || vendor.businessName
-
+      id: vendorId,
+      name: vendor.companyName || vendor.businessName || vendor.name
     });
-
     setShowDeleteModal(true);
-
   };
 
 
@@ -1957,12 +2035,6 @@ const AdminDashboard = () => {
 
     { id: 'users', label: 'Users', icon: UserCheck, section: 'management' },
 
-    { id: 'reviews', label: 'Reviews', icon: Star, section: 'management' },
-
-    { id: 'profile', label: 'My Profile', icon: Users, section: 'personal' },
-
-    { id: 'settings', label: 'My Settings', icon: Settings, section: 'personal' },
-
     { id: 'configuration', label: 'Site Configuration', icon: Settings, section: 'configuration' },
 
   ];
@@ -2005,6 +2077,52 @@ const AdminDashboard = () => {
 
             </div>
 
+            <div className="flex items-center gap-2 sm:gap-3">
+
+              <button
+
+                onClick={() => navigate('/shopping')}
+
+                className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
+
+              >
+
+                <ShoppingBag size={16} />
+
+                <span>View Store</span>
+
+              </button>
+
+              <button
+
+                onClick={() => navigate('/dashboard')}
+
+                className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
+
+              >
+
+                <User size={16} />
+
+                <span>User Dashboard</span>
+
+              </button>
+
+              <button
+
+                onClick={logout}
+
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all text-sm font-medium"
+
+              >
+
+                <Power size={16} />
+
+                <span className="hidden sm:inline">Logout</span>
+
+              </button>
+
+            </div>
+
           </div>
 
         </div>
@@ -2038,54 +2156,6 @@ const AdminDashboard = () => {
                     <div className="space-y-2">
 
                       {tabs.filter(tab => tab.section === 'management').map(tab => (
-
-                        <button
-
-                          key={tab.id}
-
-                          onClick={() => {
-
-                            setActiveTab(tab.id);
-
-                            setMobileMenuOpen(false);
-
-                          }}
-
-                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-
-                            activeTab === tab.id
-
-                              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-
-                              : 'hover:bg-gray-100 text-gray-700'
-
-                          }`}
-
-                        >
-
-                          <tab.icon size={18} />
-
-                          <span className="font-medium text-sm">{tab.label}</span>
-
-                        </button>
-
-                      ))}
-
-                    </div>
-
-                  </div>
-
-
-
-                  {/* Personal Section */}
-
-                  <div>
-
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Personal</h3>
-
-                    <div className="space-y-2">
-
-                      {tabs.filter(tab => tab.section === 'personal').map(tab => (
 
                         <button
 
@@ -2171,6 +2241,43 @@ const AdminDashboard = () => {
 
                   </div>
 
+                  {/* Quick Navigation Section */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Quick Navigation</h3>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          navigate('/shopping');
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-700"
+                      >
+                        <ShoppingBag size={18} />
+                        <span className="font-medium text-sm">View Store</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/dashboard');
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-700"
+                      >
+                        <User size={18} />
+                        <span className="font-medium text-sm">User Dashboard</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-red-50 text-red-600"
+                      >
+                        <Power size={18} />
+                        <span className="font-medium text-sm">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+
                 </nav>
 
               </div>
@@ -2198,48 +2305,6 @@ const AdminDashboard = () => {
                   <div className="space-y-2">
 
                     {tabs.filter(tab => tab.section === 'management').map(tab => (
-
-                      <button
-
-                        key={tab.id}
-
-                        onClick={() => setActiveTab(tab.id)}
-
-                        className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors ${
-
-                          activeTab === tab.id
-
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-
-                            : 'hover:bg-gray-100 text-gray-700'
-
-                        }`}
-
-                      >
-
-                        <tab.icon size={16} sm:size={18} md:size={20} />
-
-                        <span className="font-medium text-xs sm:text-sm md:text-base">{tab.label}</span>
-
-                      </button>
-
-                    ))}
-
-                  </div>
-
-                </div>
-
-
-
-                {/* Personal Section */}
-
-                <div>
-
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">Personal</h3>
-
-                  <div className="space-y-2">
-
-                    {tabs.filter(tab => tab.section === 'personal').map(tab => (
 
                       <button
 
@@ -2324,550 +2389,6 @@ const AdminDashboard = () => {
           {/* Main Content */}
 
           <main className="flex-1">
-
-            {activeTab === 'profile' && (
-
-              <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
-
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">My Profile</h2>
-
-                
-
-                {/* Profile Header */}
-
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-3 sm:p-4 md:p-6 mb-6 text-white">
-
-                  <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 md:gap-4 sm:gap-6">
-
-                    <div className="relative">
-
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/20 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl font-bold border-4 border-white/30">
-
-                        {user?.fullName?.charAt(0).toUpperCase() || 'A'}
-
-                      </div>
-
-                      <button className="absolute bottom-0 right-0 bg-white text-purple-600 p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors">
-
-                        <Camera size={16} />
-
-                      </button>
-
-                    </div>
-
-                    <div className="text-center sm:text-left">
-
-                      <h3 className="text-xl sm:text-2xl font-bold">{user?.fullName || 'Admin'}</h3>
-
-                      <p className="opacity-90 text-xs sm:text-sm md:text-base">{user?.email || 'admin@happyshopping.com'}</p>
-
-                      <div className="flex gap-2 mt-2 justify-center sm:justify-start">
-
-                        <span className="bg-white/20 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
-
-                          Administrator
-
-                        </span>
-
-                        <span className="bg-green-400/20 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
-
-                          Active
-
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-
-
-                {/* Profile Form */}
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                  {/* Personal Information */}
-
-                  <div className="space-y-4">
-
-                    <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">Personal Information</h4>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-
-                      <input
-
-                        type="text"
-
-                        defaultValue={user?.fullName || ''}
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter your full name"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-
-                      <input
-
-                        type="email"
-
-                        defaultValue={user?.email || ''}
-
-                        disabled
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg bg-gray-100 focus:outline-none"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
-
-                      <input
-
-                        type="tel"
-
-                        defaultValue={user?.phone || ''}
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter your phone number"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Address</label>
-
-                      <textarea
-
-                        defaultValue={user?.address || ''}
-
-                        rows={3}
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none"
-
-                        placeholder="Enter your address"
-
-                      />
-
-                    </div>
-
-                  </div>
-
-
-
-                  {/* Payment Methods */}
-
-                  <div className="space-y-4">
-
-                    <h4 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-
-                      <CreditCard size={18} />
-
-                      Payment Methods
-
-                    </h4>
-
-                    <div className="space-y-3">
-
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-gray-200">
-
-                        <div className="flex items-center justify-between mb-2">
-
-                          <div className="flex items-center gap-2">
-
-                            <CreditCard size={16} className="text-blue-600" />
-
-                            <span className="font-semibold text-gray-800">Visa Card</span>
-
-                          </div>
-
-                          <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">Default</span>
-
-                        </div>
-
-                        <p className="text-sm text-gray-600">**** **** **** 4242</p>
-
-                        <p className="text-xs text-gray-500">Expires: 12/25</p>
-
-                      </div>
-
-                      <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-
-                        <div className="flex items-center justify-between mb-2">
-
-                          <div className="flex items-center gap-2">
-
-                            <CreditCard size={16} className="text-gray-600" />
-
-                            <span className="font-semibold text-gray-800">MasterCard</span>
-
-                          </div>
-
-                        </div>
-
-                        <p className="text-sm text-gray-600">**** **** **** 5555</p>
-
-                        <p className="text-xs text-gray-500">Expires: 08/26</p>
-
-                      </div>
-
-                      <button className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-purple-500 hover:text-purple-600 transition-colors flex items-center justify-center gap-2">
-
-                        <Plus size={16} />
-
-                        Add Payment Method
-
-                      </button>
-
-                    </div>
-
-                  </div>
-
-
-
-                  {/* Addresses */}
-
-                  <div className="space-y-4">
-
-                    <h4 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-
-                      <MapPin size={18} />
-
-                      Addresses
-
-                    </h4>
-
-                    <div className="space-y-3">
-
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-gray-200">
-
-                        <div className="flex items-center justify-between mb-2">
-
-                          <span className="font-semibold text-gray-800">Home Address</span>
-
-                          <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">Default</span>
-
-                        </div>
-
-                        <p className="text-sm text-gray-600">123 Main Street</p>
-
-                        <p className="text-sm text-gray-600">Mumbai, Maharashtra 400001</p>
-
-                        <p className="text-xs text-gray-500">India</p>
-
-                      </div>
-
-                      <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-
-                        <div className="flex items-center justify-between mb-2">
-
-                          <span className="font-semibold text-gray-800">Office Address</span>
-
-                        </div>
-
-                        <p className="text-sm text-gray-600">456 Business Park</p>
-
-                        <p className="text-sm text-gray-600">Bangalore, Karnataka 560001</p>
-
-                        <p className="text-xs text-gray-500">India</p>
-
-                      </div>
-
-                      <button className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-purple-500 hover:text-purple-600 transition-colors flex items-center justify-center gap-2">
-
-                        <Plus size={16} />
-
-                        Add Address
-
-                      </button>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-
-
-                {/* Bank Details & Tax Information */}
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 pt-6 border-t">
-
-                  {/* Bank Details */}
-
-                  <div className="space-y-4">
-
-                    <h4 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-
-                      <Building size={18} />
-
-                      Bank Details
-
-                    </h4>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Bank Name</label>
-
-                      <input
-
-                        type="text"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter bank name"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Account Number</label>
-
-                      <input
-
-                        type="text"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter account number"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">IFSC Code</label>
-
-                      <input
-
-                        type="text"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter IFSC code"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Account Type</label>
-
-                      <select className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
-
-                        <option value="">Select account type</option>
-
-                        <option value="savings">Savings Account</option>
-
-                        <option value="current">Current Account</option>
-
-                      </select>
-
-                    </div>
-
-                  </div>
-
-
-
-                  {/* Tax Information */}
-
-                  <div className="space-y-4">
-
-                    <h4 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-
-                      <FileText size={18} />
-
-                      Tax Information
-
-                    </h4>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">PAN Number</label>
-
-                      <input
-
-                        type="text"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter PAN number"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">GST Number</label>
-
-                      <input
-
-                        type="text"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter GST number"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Tax ID</label>
-
-                      <input
-
-                        type="text"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter tax ID"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="flex items-center gap-2">
-
-                        <input type="checkbox" defaultChecked={false} className="w-4 h-4" />
-
-                        <span className="text-sm text-gray-700">I am tax-exempt</span>
-
-                      </label>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-
-
-                {/* Security Settings */}
-
-                <div className="mt-6 pt-6 border-t">
-
-                  <h4 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2 mb-4">
-
-                    <Shield size={18} />
-
-                    Security Settings
-
-                  </h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Current Password</label>
-
-                      <input
-
-                        type="password"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter current password"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">New Password</label>
-
-                      <input
-
-                        type="password"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Enter new password"
-
-                      />
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Confirm New Password</label>
-
-                      <input
-
-                        type="password"
-
-                        className="w-full px-3 sm:px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-
-                        placeholder="Confirm new password"
-
-                      />
-
-                    </div>
-
-                  </div>
-
-                  <div className="mt-4">
-
-                    <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all">
-
-                      Change Password
-
-                    </button>
-
-                  </div>
-
-                </div>
-
-
-
-                {/* Action Buttons */}
-
-                <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t">
-
-                  <button className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 sm:py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all">
-
-                    Update Profile
-
-                  </button>
-
-                  <button className="flex-1 border-2 border-purple-600 text-purple-600 px-4 py-2 sm:py-3 rounded-lg font-semibold hover:bg-purple-50 transition-all">
-
-                    Cancel
-
-                  </button>
-
-                </div>
-
-              </div>
-
-            )}
-
-
 
             {activeTab === 'overview' && (
 
@@ -3053,22 +2574,31 @@ const AdminDashboard = () => {
 
               defaultValidationRules={defaultValidationRules}
 
+              showToast={(message, type) => setToast({ show: true, message, type })}
+
             />
 
 
 
             {activeTab === 'vendors' && (
 
-              <VendorsSection vendors={vendors} vendorFilter={vendorFilter} setVendorFilter={setVendorFilter} handleOpenVendorModal={handleOpenVendorModal} handleDeleteVendor={handleDeleteVendor} />
+              <VendorsSection 
+                vendors={vendors} 
+                vendorFilter={vendorFilter} 
+                setVendorFilter={setVendorFilter} 
+                handleOpenVendorModal={handleOpenVendorModal} 
+                handleDeleteVendor={handleDeleteVendor}
+                onEditVendor={handleOpenVendorModal}
+                onRefresh={loadDashboardData}
+                showToast={(message, type) => setToast({ show: true, message, type })}
+              />
 
             )}
 
 
 
             {activeTab === 'orders' && (
-
-              <OrdersSection orders={orders} />
-
+              <OrdersSection orders={orders || []} onOrderUpdate={loadDashboardData} showToast={(message, type) => setToast({ show: true, message, type })} />
             )}
 
 
@@ -3092,30 +2622,6 @@ const AdminDashboard = () => {
             )}
 
 
-
-            {activeTab === 'reviews' && (
-
-              <ReviewsSection
-
-                reviews={reviews}
-
-                onApprove={handleApproveReview}
-
-                onDelete={handleDeleteReview}
-
-                onFilterChange={() => {}}
-
-              />
-
-            )}
-
-
-
-            {activeTab === 'settings' && (
-
-              <SettingsSection />
-
-            )}
 
           </main>
 

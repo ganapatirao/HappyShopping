@@ -1,5 +1,7 @@
 using HappyShoppingClone.API.Models;
 using MongoDB.Driver;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
 
 namespace HappyShoppingClone.API.Data;
 
@@ -9,6 +11,13 @@ public class MongoDbContext
 
     public MongoDbContext(IConfiguration configuration)
     {
+        // Configure MongoDB to use C# property names as-is
+        var pack = new ConventionPack
+        {
+            new IgnoreExtraElementsConvention(true)
+        };
+        ConventionRegistry.Register("HappyShoppingConventions", pack, t => true);
+
         var connectionString = configuration.GetConnectionString("MongoDb");
         
         if (string.IsNullOrWhiteSpace(connectionString))

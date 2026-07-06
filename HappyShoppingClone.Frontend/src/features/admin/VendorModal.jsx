@@ -9,9 +9,18 @@ const VendorModal = ({
   setVendorForm, 
   validationErrors,
   validateField,
-  defaultValidationRules 
+  defaultValidationRules,
+  showToast
 }) => {
   if (!show) return null;
+
+  const handleBlur = (field, value, rules) => {
+    validateField(field, value, rules);
+    // Show validation error as toast if there's an error
+    if (validationErrors[field]) {
+      showToast(validationErrors[field], 'error');
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
@@ -40,47 +49,35 @@ const VendorModal = ({
           </div>
         </div>
         
-        <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-5">
+        <div className="p-6 space-y-5">
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
-              Contact Name
+              Company Name
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={vendorForm.name}
-                onChange={(e) => setVendorForm({ ...vendorForm, name: e.target.value })}
-                onBlur={() => validateField('name', vendorForm.name, { required: true, minLength: 2, maxLength: 100 })}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-11 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
-                placeholder="Contact name"
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">👤</span>
-            </div>
-            {validationErrors.name && (
-              <p className="text-red-500 text-xs mt-1">{validationErrors.name}</p>
-            )}
+            <input
+              type="text"
+              value={vendorForm.companyName}
+              onChange={(e) => setVendorForm({ ...vendorForm, companyName: e.target.value })}
+              onBlur={() => handleBlur('companyName', vendorForm.companyName, { required: true, minLength: 2, maxLength: 200 })}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.companyName ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
+              placeholder="Company name"
+            />
           </div>
 
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
-              Business Name
+              Display Name
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={vendorForm.businessName}
-                onChange={(e) => setVendorForm({ ...vendorForm, businessName: e.target.value })}
-                onBlur={() => validateField('businessName', vendorForm.businessName, { required: true, minLength: 2, maxLength: 200 })}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-11 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.businessName ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
-                placeholder="Business name"
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🏢</span>
-            </div>
-            {validationErrors.businessName && (
-              <p className="text-red-500 text-xs mt-1">{validationErrors.businessName}</p>
-            )}
+            <input
+              type="text"
+              value={vendorForm.displayName}
+              onChange={(e) => setVendorForm({ ...vendorForm, displayName: e.target.value })}
+              onBlur={() => handleBlur('displayName', vendorForm.displayName, { required: true, minLength: 2, maxLength: 100 })}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.displayName ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
+              placeholder="Display name"
+            />
           </div>
 
           <div className="space-y-2">
@@ -88,41 +85,44 @@ const VendorModal = ({
               <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
               Email
             </label>
-            <div className="relative">
-              <input
-                type="email"
-                value={vendorForm.email}
-                onChange={(e) => setVendorForm({ ...vendorForm, email: e.target.value })}
-                onBlur={() => validateField('email', vendorForm.email, { required: true, pattern: defaultValidationRules.email })}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-11 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
-                placeholder="Email address"
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">📧</span>
-            </div>
-            {validationErrors.email && (
-              <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>
-            )}
+            <input
+              type="email"
+              value={vendorForm.email}
+              onChange={(e) => setVendorForm({ ...vendorForm, email: e.target.value })}
+              onBlur={() => handleBlur('email', vendorForm.email, { required: true, pattern: defaultValidationRules.email })}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
+              placeholder="Email address"
+            />
           </div>
 
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
-              Phone
+              Password {editingVendor && <span className="text-xs font-normal text-gray-500">(leave blank to keep existing)</span>}
             </label>
-            <div className="relative">
-              <input
-                type="tel"
-                value={vendorForm.phone}
-                onChange={(e) => setVendorForm({ ...vendorForm, phone: e.target.value })}
-                onBlur={() => validateField('phone', vendorForm.phone, { required: true, pattern: defaultValidationRules.phone })}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-11 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
-                placeholder="Phone number"
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">📱</span>
-            </div>
-            {validationErrors.phone && (
-              <p className="text-red-500 text-xs mt-1">{validationErrors.phone}</p>
-            )}
+            <input
+              type="password"
+              value={vendorForm.password}
+              onChange={(e) => setVendorForm({ ...vendorForm, password: e.target.value })}
+              onBlur={() => handleBlur('password', vendorForm.password, { required: !editingVendor, minLength: 6 })}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
+              placeholder={editingVendor ? "Leave blank to keep current password" : "Password"}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              value={vendorForm.phoneNumber}
+              onChange={(e) => setVendorForm({ ...vendorForm, phoneNumber: e.target.value })}
+              onBlur={() => handleBlur('phoneNumber', vendorForm.phoneNumber, { required: true, pattern: defaultValidationRules.phone })}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.phoneNumber ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
+              placeholder="Phone number"
+            />
           </div>
 
           <div className="space-y-2">
@@ -130,33 +130,41 @@ const VendorModal = ({
               <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
               Business Type
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={vendorForm.businessType}
-                onChange={(e) => setVendorForm({ ...vendorForm, businessType: e.target.value })}
-                onBlur={() => validateField('businessType', vendorForm.businessType, { required: true })}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-11 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.businessType ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
-                placeholder="Business type"
-              />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🏷️</span>
-            </div>
-            {validationErrors.businessType && (
-              <p className="text-red-500 text-xs mt-1">{validationErrors.businessType}</p>
-            )}
+            <input
+              type="text"
+              value={vendorForm.businessType}
+              onChange={(e) => setVendorForm({ ...vendorForm, businessType: e.target.value })}
+              onBlur={() => handleBlur('businessType', vendorForm.businessType, { required: true })}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${validationErrors.businessType ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'}`}
+              placeholder="Business type (e.g., Clothing, Electronics)"
+            />
           </div>
 
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
-              Address
+              GST Number
             </label>
-            <textarea
-              value={vendorForm.address}
-              onChange={(e) => setVendorForm({ ...vendorForm, address: e.target.value })}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none"
-              rows={3}
-              placeholder="Business address"
+            <input
+              type="text"
+              value={vendorForm.gstNumber}
+              onChange={(e) => setVendorForm({ ...vendorForm, gstNumber: e.target.value })}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+              placeholder="GST number"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
+              PAN Number
+            </label>
+            <input
+              type="text"
+              value={vendorForm.panNumber}
+              onChange={(e) => setVendorForm({ ...vendorForm, panNumber: e.target.value })}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+              placeholder="PAN number"
             />
           </div>
 
@@ -168,9 +176,9 @@ const VendorModal = ({
             <textarea
               value={vendorForm.description}
               onChange={(e) => setVendorForm({ ...vendorForm, description: e.target.value })}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all resize-none"
               rows={3}
-              placeholder="Vendor description"
+              placeholder="Business description"
             />
           </div>
 

@@ -102,16 +102,24 @@ const ProductsSection = ({
                   <tr key={product.id} className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-colors">
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative">
+                        <div className="relative group">
                           <img 
                             src={product.imageBase64?.[0] || product.imageUrls?.[0] || 'https://via.placeholder.com/50'} 
                             alt={product.name}
-                            className="w-14 h-14 object-cover rounded-xl shadow-md"
+                            className="w-14 h-14 object-cover rounded-xl shadow-md group-hover:scale-110 transition-transform cursor-pointer"
                           />
+                          {product.imageBase64 && product.imageBase64.length > 1 && (
+                            <div className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                              {product.imageBase64.length}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <p className="font-bold text-gray-800 text-sm">{product.name}</p>
                           <p className="text-xs text-gray-500">{categoryName}</p>
+                          {product.brand && (
+                            <p className="text-xs text-purple-600 font-medium">{product.brand}</p>
+                          )}
                         </div>
                       </div>
                     </td>

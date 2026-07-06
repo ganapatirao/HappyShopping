@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Edit, Package, AlertCircle } from 'lucide-react';
+import { X, Plus, Edit, Package, AlertCircle, Truck, Gift, Tag, Info, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { productAPI } from '../../services/api';
 
 const ProductModal = ({ 
@@ -20,6 +20,13 @@ const ProductModal = ({
   const [validationErrors, setValidationErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
   const [rulesLoading, setRulesLoading] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    delivery: false,
+    offers: false,
+    specifications: false,
+    highlights: false,
+    productDetails: false
+  });
 
   useEffect(() => {
     if (show) {
@@ -506,6 +513,436 @@ const ProductModal = ({
                 <p className="text-xs text-gray-500">Popular items</p>
               </div>
             </label>
+          </div>
+
+          {/* Product Highlights Section */}
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setExpandedSections({ ...expandedSections, highlights: !expandedSections.highlights })}
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Zap className="text-orange-600" size={18} />
+                <span className="font-semibold text-gray-800">Product Highlights</span>
+              </div>
+              {expandedSections.highlights ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            {expandedSections.highlights && (
+              <div className="p-4 space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Add Highlight</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={productForm.newHighlight || ''}
+                      onChange={(e) => setProductForm({ ...productForm, newHighlight: e.target.value })}
+                      className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                      placeholder="Enter product highlight"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (productForm.newHighlight && productForm.newHighlight.trim()) {
+                          setProductForm({
+                            ...productForm,
+                            highlights: [...(productForm.highlights || []), productForm.newHighlight.trim()],
+                            newHighlight: ''
+                          });
+                        }
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                </div>
+                {productForm.highlights && productForm.highlights.length > 0 && (
+                  <div className="space-y-2">
+                    {productForm.highlights.map((highlight, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-700">{highlight}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductForm({
+                              ...productForm,
+                              highlights: productForm.highlights.filter((_, i) => i !== index)
+                            });
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Delivery Information Section */}
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setExpandedSections({ ...expandedSections, delivery: !expandedSections.delivery })}
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Truck className="text-blue-600" size={18} />
+                <span className="font-semibold text-gray-800">Delivery Information</span>
+              </div>
+              {expandedSections.delivery ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            {expandedSections.delivery && (
+              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Free Delivery</label>
+                  <select
+                    value={productForm.deliveryInfo?.freeDelivery ? 'true' : 'false'}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      deliveryInfo: { ...productForm.deliveryInfo, freeDelivery: e.target.value === 'true' }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Delivery Days</label>
+                  <input
+                    type="number"
+                    value={productForm.deliveryInfo?.deliveryDays || 5}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      deliveryInfo: { ...productForm.deliveryInfo, deliveryDays: parseInt(e.target.value) }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Delivery Type</label>
+                  <select
+                    value={productForm.deliveryInfo?.deliveryType || 'Standard'}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      deliveryInfo: { ...productForm.deliveryInfo, deliveryType: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="Standard">Standard</option>
+                    <option value="Express">Express</option>
+                    <option value="Same Day">Same Day</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Delivery Areas</label>
+                  <input
+                    type="text"
+                    value={productForm.deliveryInfo?.deliveryAreas || 'All India'}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      deliveryInfo: { ...productForm.deliveryInfo, deliveryAreas: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Return Days</label>
+                  <input
+                    type="number"
+                    value={productForm.deliveryInfo?.returnDays || 7}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      deliveryInfo: { ...productForm.deliveryInfo, returnDays: parseInt(e.target.value) }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Free Return</label>
+                  <select
+                    value={productForm.deliveryInfo?.freeReturn ? 'true' : 'false'}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      deliveryInfo: { ...productForm.deliveryInfo, freeReturn: e.target.value === 'true' }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Cash on Delivery</label>
+                  <select
+                    value={productForm.deliveryInfo?.cashOnDeliveryAvailable ? 'true' : 'false'}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      deliveryInfo: { ...productForm.deliveryInfo, cashOnDeliveryAvailable: e.target.value === 'true' }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="true">Available</option>
+                    <option value="false">Not Available</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Offers Section */}
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setExpandedSections({ ...expandedSections, offers: !expandedSections.offers })}
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Gift className="text-purple-600" size={18} />
+                <span className="font-semibold text-gray-800">Product Offers</span>
+              </div>
+              {expandedSections.offers ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            {expandedSections.offers && (
+              <div className="p-4 space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Add New Offer</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={productForm.newOffer?.title || ''}
+                      onChange={(e) => setProductForm({
+                        ...productForm,
+                        newOffer: { ...productForm.newOffer, title: e.target.value }
+                      })}
+                      className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                      placeholder="Offer title"
+                    />
+                    <input
+                      type="text"
+                      value={productForm.newOffer?.promoCode || ''}
+                      onChange={(e) => setProductForm({
+                        ...productForm,
+                        newOffer: { ...productForm.newOffer, promoCode: e.target.value }
+                      })}
+                      className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                      placeholder="Promo code"
+                    />
+                  </div>
+                  <textarea
+                    value={productForm.newOffer?.description || ''}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      newOffer: { ...productForm.newOffer, description: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 resize-none"
+                    rows={2}
+                    placeholder="Offer description"
+                  />
+                  <input
+                    type="date"
+                    value={productForm.newOffer?.validUntil || ''}
+                    onChange={(e) => setProductForm({
+                      ...productForm,
+                      newOffer: { ...productForm.newOffer, validUntil: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (productForm.newOffer?.title && productForm.newOffer.title.trim()) {
+                        setProductForm({
+                          ...productForm,
+                          offers: [...(productForm.offers || []), {
+                            ...productForm.newOffer,
+                            validUntil: productForm.newOffer.validUntil ? new Date(productForm.newOffer.validUntil).toISOString() : null
+                          }],
+                          newOffer: { title: '', description: '', promoCode: '', validUntil: '' }
+                        });
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700"
+                  >
+                    <Plus size={18} className="inline mr-2" />
+                    Add Offer
+                  </button>
+                </div>
+                {productForm.offers && productForm.offers.length > 0 && (
+                  <div className="space-y-2">
+                    {productForm.offers.map((offer, index) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-semibold text-gray-800">{offer.title}</p>
+                            <p className="text-sm text-gray-600">{offer.description}</p>
+                            {offer.promoCode && (
+                              <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold">
+                                {offer.promoCode}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProductForm({
+                                ...productForm,
+                                offers: productForm.offers.filter((_, i) => i !== index)
+                              });
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Specifications Section */}
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setExpandedSections({ ...expandedSections, specifications: !expandedSections.specifications })}
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-cyan-50 to-blue-50 hover:from-cyan-100 hover:to-blue-100 transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Info className="text-cyan-600" size={18} />
+                <span className="font-semibold text-gray-800">Specifications</span>
+              </div>
+              {expandedSections.specifications ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            {expandedSections.specifications && (
+              <div className="p-4 space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Add Specification</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={productForm.newSpec?.key || ''}
+                      onChange={(e) => setProductForm({
+                        ...productForm,
+                        newSpec: { ...productForm.newSpec, key: e.target.value }
+                      })}
+                      className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                      placeholder="Specification key"
+                    />
+                    <input
+                      type="text"
+                      value={productForm.newSpec?.value || ''}
+                      onChange={(e) => setProductForm({
+                        ...productForm,
+                        newSpec: { ...productForm.newSpec, value: e.target.value }
+                      })}
+                      className="px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                      placeholder="Specification value"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (productForm.newSpec?.key && productForm.newSpec.key.trim()) {
+                        setProductForm({
+                          ...productForm,
+                          specifications: [...(productForm.specifications || []), productForm.newSpec],
+                          newSpec: { key: '', value: '' }
+                        });
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700"
+                  >
+                    <Plus size={18} className="inline mr-2" />
+                    Add Specification
+                  </button>
+                </div>
+                {productForm.specifications && productForm.specifications.length > 0 && (
+                  <div className="space-y-2">
+                    {productForm.specifications.map((spec, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <span className="font-semibold text-gray-800">{spec.key}:</span>
+                          <span className="text-gray-600 ml-2">{spec.value}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductForm({
+                              ...productForm,
+                              specifications: productForm.specifications.filter((_, i) => i !== index)
+                            });
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Product Details Section */}
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setExpandedSections({ ...expandedSections, productDetails: !expandedSections.productDetails })}
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Tag className="text-orange-600" size={18} />
+                <span className="font-semibold text-gray-800">Product Details</span>
+              </div>
+              {expandedSections.productDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            {expandedSections.productDetails && (
+              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Brand</label>
+                  <input
+                    type="text"
+                    value={productForm.brand || ''}
+                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                    placeholder="Brand name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Manufacturer</label>
+                  <input
+                    type="text"
+                    value={productForm.manufacturer || ''}
+                    onChange={(e) => setProductForm({ ...productForm, manufacturer: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                    placeholder="Manufacturer name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Country of Origin</label>
+                  <input
+                    type="text"
+                    value={productForm.countryOfOrigin || ''}
+                    onChange={(e) => setProductForm({ ...productForm, countryOfOrigin: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                    placeholder="Country of origin"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Warranty</label>
+                  <input
+                    type="text"
+                    value={productForm.warranty || ''}
+                    onChange={(e) => setProductForm({ ...productForm, warranty: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500"
+                    placeholder="Warranty information"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

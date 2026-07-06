@@ -114,6 +114,36 @@ public class OrderController : ControllerBase
 
         return Ok(new { success = true, order });
     }
+
+    [HttpPut("{id}/tracking")]
+    public async Task<ActionResult> UpdateTrackingNumber(string id, [FromBody] UpdateTrackingNumberRequest request)
+    {
+        var order = await _context.Orders.Find(o => o.Id == id).FirstOrDefaultAsync();
+        if (order == null)
+        {
+            return NotFound(new { success = false, error = "Order not found" });
+        }
+
+        order.TrackingNumber = request.TrackingNumber;
+
+        await _context.Orders.ReplaceOneAsync(o => o.Id == id, order);
+
+        return Ok(new { success = true, order });
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteOrder(string id)
+    {
+        var order = await _context.Orders.Find(o => o.Id == id).FirstOrDefaultAsync();
+        if (order == null)
+        {
+            return NotFound(new { success = false, error = "Order not found" });
+        }
+
+        await _context.Orders.DeleteOneAsync(o => o.Id == id);
+
+        return Ok(new { success = true, message = "Order deleted successfully" });
+    }
 }
 
 public class UpdateOrderStatusRequest
@@ -127,4 +157,9 @@ public class UpdatePaymentStatusRequest
     public string PaymentStatus { get; set; } = string.Empty;
     public string PaymentMethod { get; set; } = string.Empty;
     public string? FailureReason { get; set; }
+}
+
+public class UpdateTrackingNumberRequest
+{
+    public string TrackingNumber { get; set; } = string.Empty;
 }

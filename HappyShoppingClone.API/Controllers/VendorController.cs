@@ -27,7 +27,7 @@ public class VendorController : ControllerBase
 
         var newVendor = new Vendor
         {
-            Id = null,
+            Id = Guid.NewGuid().ToString(),
             CompanyName = request.CompanyName,
             DisplayName = request.DisplayName,
             Email = request.Email.ToLower(),
@@ -102,6 +102,20 @@ public class VendorController : ControllerBase
         await _context.Vendors.ReplaceOneAsync(v => v.Id == id, vendor);
 
         return Ok(new { success = true, message = "Vendor verified successfully" });
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteVendor(string id)
+    {
+        var vendor = await _context.Vendors.Find(v => v.Id == id).FirstOrDefaultAsync();
+        if (vendor == null)
+        {
+            return NotFound(new { success = false, error = "Vendor not found" });
+        }
+
+        await _context.Vendors.DeleteOneAsync(v => v.Id == id);
+
+        return Ok(new { success = true, message = "Vendor deleted successfully" });
     }
 
     private string HashPassword(string password)
