@@ -88,7 +88,6 @@ const VendorDetailSection = ({ vendor, onBack, onEdit, onRefresh }) => {
       setVendorDetails(normalizedVendor);
       setIsReady(true);
     } catch (error) {
-      console.error('Error loading vendor details:', error);
       setIsReady(true);
     } finally {
       setLoading(false);

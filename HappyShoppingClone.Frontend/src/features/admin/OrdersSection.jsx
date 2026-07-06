@@ -118,11 +118,9 @@ const OrdersSection = ({ orders, onOrderUpdate, showToast }) => {
         setShowUpdateModal(false);
         showToast('Order status updated successfully!', 'success');
       } else {
-        console.error('Failed to update order status:', response.data.error);
         showToast('Failed to update order status. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('Error updating order status:', error);
       showToast('Error updating order status. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -144,11 +142,9 @@ const OrdersSection = ({ orders, onOrderUpdate, showToast }) => {
         setShowPaymentModal(false);
         showToast('Payment information updated successfully!', 'success');
       } else {
-        console.error('Failed to update payment:', response.data.error);
         showToast('Failed to update payment. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('Error updating payment:', error);
       showToast('Error updating payment. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -169,11 +165,9 @@ const OrdersSection = ({ orders, onOrderUpdate, showToast }) => {
         setShowTrackingModal(false);
         showToast('Tracking number updated successfully!', 'success');
       } else {
-        console.error('Failed to update tracking:', response.data.error);
         showToast('Failed to update tracking. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('Error updating tracking:', error);
       showToast('Error updating tracking. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -192,11 +186,9 @@ const OrdersSection = ({ orders, onOrderUpdate, showToast }) => {
         setShowDeleteModal(false);
         showToast('Order deleted successfully!', 'success');
       } else {
-        console.error('Failed to delete order:', response.data.error);
         showToast('Failed to delete order. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('Error deleting order:', error);
       showToast('Error deleting order. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -213,7 +205,7 @@ const OrdersSection = ({ orders, onOrderUpdate, showToast }) => {
             setCustomerDetails(response.data.user);
           }
         } catch (error) {
-          console.error('Failed to fetch customer details:', error);
+          // Failed to fetch customer details
         }
       }
     };

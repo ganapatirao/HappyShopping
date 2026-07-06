@@ -669,12 +669,8 @@ const AdminDashboard = () => {
       // Load orders separately to handle errors gracefully
       let ordersData;
       try {
-        console.log('Fetching orders from API...');
         ordersData = await orderAPI.getAll();
-        console.log('Orders API response:', ordersData);
-        console.log('Orders data:', ordersData.data);
       } catch (orderError) {
-        console.error('Failed to load orders:', orderError);
         ordersData = { data: { success: false, orders: [] } };
       }
 
