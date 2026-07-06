@@ -151,13 +151,23 @@ const UserDashboard = () => {
     }
   }, [user, isAuthenticated]);
 
-  // Load saved addresses from localStorage
+  // Load saved addresses from backend
+  const loadAddresses = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses`);
+      const result = await response.json();
+      if (result.success) {
+        setAddresses(result.addresses || []);
+      }
+    } catch (error) {
+      // Handle error silently
+    }
+  };
+
   useEffect(() => {
     if (user?.id) {
-      const storedAddresses = localStorage.getItem(`savedAddresses_${user.id}`);
-      if (storedAddresses) {
-        setAddresses(JSON.parse(storedAddresses));
-      }
+      loadAddresses();
       // Load wishlist from user data
       if (user.wishlist) {
         setWishlist(user.wishlist);
@@ -520,36 +530,91 @@ const UserDashboard = () => {
       return;
     }
     
-    let updatedAddresses;
-    if (editingAddress) {
-      updatedAddresses = addresses.map(a => a.id === editingAddress.id ? { ...addressForm, id: editingAddress.id } : a);
-    } else {
-      updatedAddresses = [...addresses, { ...addressForm, id: Date.now().toString() }];
+    try {
+      const addressData = {
+        fullName: addressForm.fullName,
+        phone: addressForm.phone,
+        addressLine1: addressForm.addressLine1,
+        addressLine2: addressForm.addressLine2,
+        city: addressForm.city,
+        state: addressForm.state,
+        zipCode: addressForm.zipCode,
+        country: addressForm.country,
+        addressType: 'Home',
+        isDefault: addressForm.isDefault
+      };
+
+      if (editingAddress) {
+        const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${editingAddress.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...addressData, id: editingAddress.id })
+        });
+        const result = await response.json();
+        if (result.success) {
+          await loadAddresses();
+          handleCloseAddressModal();
+          setAddressErrors({});
+          showToast('Address updated successfully!');
+        } else {
+          showToast('Failed to update address', 'error');
+        }
+      } else {
+        const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(addressData)
+        });
+        const result = await response.json();
+        if (result.success) {
+          await loadAddresses();
+          handleCloseAddressModal();
+          setAddressErrors({});
+          showToast('Address added successfully!');
+        } else {
+          showToast('Failed to add address', 'error');
+        }
+      }
+    } catch (error) {
+      showToast('Error saving address', 'error');
     }
-    setAddresses(updatedAddresses);
-    localStorage.setItem(`savedAddresses_${user.id}`, JSON.stringify(updatedAddresses));
-    handleCloseAddressModal();
-    setAddressErrors({});
-    showToast(editingAddress ? 'Address updated successfully!' : 'Address added successfully!');
   };
 
-  const handleDeleteAddress = (id) => {
-    if (confirm('Are you sure you want to delete this address?')) {
-      const updatedAddresses = addresses.filter(a => a.id !== id);
-      setAddresses(updatedAddresses);
-      localStorage.setItem(`savedAddresses_${user.id}`, JSON.stringify(updatedAddresses));
-      showToast('Address deleted successfully!');
+  const handleDeleteAddress = async (id) => {
+    if (!confirm('Are you sure you want to delete this address?')) {
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${id}`, {
+        method: 'DELETE'
+      });
+      const result = await response.json();
+      if (result.success) {
+        await loadAddresses();
+        showToast('Address deleted successfully!');
+      } else {
+        showToast('Failed to delete address', 'error');
+      }
+    } catch (error) {
+      showToast('Error deleting address', 'error');
     }
   };
 
-  const handleSetDefaultAddress = (addressId) => {
-    const updatedAddresses = addresses.map(a => ({
-      ...a,
-      isDefault: a.id === addressId
-    }));
-    setAddresses(updatedAddresses);
-    localStorage.setItem(`savedAddresses_${user.id}`, JSON.stringify(updatedAddresses));
-    showToast('Default address updated successfully!');
+  const handleSetDefaultAddress = async (addressId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${addressId}/default`, {
+        method: 'PUT'
+      });
+      const result = await response.json();
+      if (result.success) {
+        await loadAddresses();
+        showToast('Default address updated successfully!');
+      } else {
+        showToast('Failed to update default address', 'error');
+      }
+    } catch (error) {
+      showToast('Error updating default address', 'error');
+    }
   };
 
   const validateAddressField = async (field, value) => {

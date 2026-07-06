@@ -48,6 +48,35 @@ const CartPage = () => {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [deleteModal, setDeleteModal] = useState({ show: false, type: '', id: null, name: '', productId: null, variantId: null });
 
+  const loadSavedAddresses = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses`);
+      const result = await response.json();
+      if (result.success) {
+        const addresses = result.addresses || [];
+        setSavedAddresses(addresses);
+        // Auto-populate from default address if exists
+        const defaultAddress = addresses.find(addr => addr.isDefault);
+        if (defaultAddress) {
+          setShippingAddress({
+            fullName: defaultAddress.FullName || defaultAddress.fullName,
+            phoneNumber: defaultAddress.PhoneNumber || defaultAddress.phoneNumber,
+            addressLine1: defaultAddress.AddressLine1 || defaultAddress.addressLine1,
+            addressLine2: defaultAddress.AddressLine2 || defaultAddress.addressLine2,
+            city: defaultAddress.City || defaultAddress.city,
+            state: defaultAddress.State || defaultAddress.state,
+            pinCode: defaultAddress.PinCode || defaultAddress.pinCode,
+            addressType: defaultAddress.AddressType || defaultAddress.addressType || 'Home'
+          });
+          setIsDefaultAddress(true);
+        }
+      }
+    } catch (error) {
+      // Handle error silently
+    }
+  };
+
   useEffect(() => {
     // Fetch validation configuration from backend
     const fetchValidationConfig = async () => {
@@ -71,18 +100,8 @@ const CartPage = () => {
         fullName: user.fullName || '',
         phoneNumber: user.phoneNumber || ''
       }));
-      // Load saved addresses from localStorage
-      const storedAddresses = localStorage.getItem(`savedAddresses_${user.id}`);
-      if (storedAddresses) {
-        setSavedAddresses(JSON.parse(storedAddresses));
-        // Auto-populate from default address if exists
-        const addresses = JSON.parse(storedAddresses);
-        const defaultAddress = addresses.find(addr => addr.isDefault);
-        if (defaultAddress) {
-          setShippingAddress(defaultAddress);
-          setIsDefaultAddress(true);
-        }
-      }
+      // Load saved addresses from backend
+      loadSavedAddresses();
     }
   }, [isAuthenticated, user]);
 
@@ -144,7 +163,7 @@ const CartPage = () => {
     }));
   };
 
-  const handleSaveAddress = () => {
+  const handleSaveAddress = async () => {
     if (!user?.id) return;
     
     // Validate shipping address before saving
@@ -159,57 +178,53 @@ const CartPage = () => {
       return;
     }
     
-    // Check if address already exists
-    const addressExists = savedAddresses.some(addr => 
-      addr.addressLine1 === shippingAddress.addressLine1 &&
-      addr.city === shippingAddress.city &&
-      addr.pinCode === shippingAddress.pinCode
-    );
-    
-    if (addressExists) {
-      setToast({ show: true, message: 'This address is already saved', type: 'info' });
-      return;
+    try {
+      const addressData = {
+        fullName: shippingAddress.fullName,
+        phone: shippingAddress.phoneNumber,
+        addressLine1: shippingAddress.addressLine1,
+        addressLine2: shippingAddress.addressLine2,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        zipCode: shippingAddress.pinCode,
+        country: 'India',
+        addressType: shippingAddress.addressType,
+        isDefault: isDefaultAddress
+      };
+
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData)
+      });
+      const result = await response.json();
+      if (result.success) {
+        await loadSavedAddresses();
+        setToast({ show: true, message: 'Address saved successfully!', type: 'success' });
+      } else {
+        setToast({ show: true, message: 'Failed to save address', type: 'error' });
+      }
+    } catch (error) {
+      setToast({ show: true, message: 'Error saving address', type: 'error' });
     }
-    
-    // Check max 3 addresses limit
-    if (savedAddresses.length >= 3) {
-      setToast({ show: true, message: 'You can save maximum 3 addresses. Please delete an existing address first.', type: 'info' });
-      return;
-    }
-    
-    // If setting as default, remove default from other addresses
-    let updatedAddresses = [...savedAddresses];
-    if (isDefaultAddress) {
-      updatedAddresses = updatedAddresses.map(addr => ({ ...addr, isDefault: false }));
-    }
-    
-    // Add new address with auto-generated label
-    const addressNumber = savedAddresses.length + 1;
-    const newAddress = {
-      ...shippingAddress,
-      id: Date.now(),
-      isDefault: isDefaultAddress,
-      label: `Address ${addressNumber}`,
-      savedAt: new Date().toISOString()
-    };
-    
-    updatedAddresses.push(newAddress);
-    setSavedAddresses(updatedAddresses);
-    localStorage.setItem(`savedAddresses_${user.id}`, JSON.stringify(updatedAddresses));
-    setToast({ show: true, message: 'Address saved successfully!', type: 'success' });
   };
 
-  const handleSetDefaultAddress = (addressId) => {
+  const handleSetDefaultAddress = async (addressId) => {
     if (!user?.id) return;
-    
-    const updatedAddresses = savedAddresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === addressId
-    }));
-    
-    setSavedAddresses(updatedAddresses);
-    localStorage.setItem(`savedAddresses_${user.id}`, JSON.stringify(updatedAddresses));
-    setToast({ show: true, message: 'Default address updated successfully!', type: 'success' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${addressId}/default`, {
+        method: 'PUT'
+      });
+      const result = await response.json();
+      if (result.success) {
+        await loadSavedAddresses();
+        setToast({ show: true, message: 'Default address updated successfully!', type: 'success' });
+      } else {
+        setToast({ show: true, message: 'Failed to update default address', type: 'error' });
+      }
+    } catch (error) {
+      setToast({ show: true, message: 'Error updating default address', type: 'error' });
+    }
   };
 
   const handleDeleteAddress = (addressId) => {
@@ -226,13 +241,23 @@ const CartPage = () => {
     }
   };
 
-  const confirmDeleteAddress = () => {
+  const confirmDeleteAddress = async () => {
     if (!user?.id) return;
-    const updatedAddresses = savedAddresses.filter(addr => addr.id !== deleteModal.id);
-    setSavedAddresses(updatedAddresses);
-    localStorage.setItem(`savedAddresses_${user.id}`, JSON.stringify(updatedAddresses));
-    setDeleteModal({ show: false, type: '', id: null, name: '', productId: null, variantId: null });
-    setToast({ show: true, message: 'Address deleted successfully!', type: 'success' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${deleteModal.id}`, {
+        method: 'DELETE'
+      });
+      const result = await response.json();
+      if (result.success) {
+        await loadSavedAddresses();
+        setDeleteModal({ show: false, type: '', id: null, name: '', productId: null, variantId: null });
+        setToast({ show: true, message: 'Address deleted successfully!', type: 'success' });
+      } else {
+        setToast({ show: true, message: 'Failed to delete address', type: 'error' });
+      }
+    } catch (error) {
+      setToast({ show: true, message: 'Error deleting address', type: 'error' });
+    }
   };
 
   const handleSelectAddress = (address) => {

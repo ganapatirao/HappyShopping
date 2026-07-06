@@ -561,5 +561,185 @@ namespace HappyShoppingClone.API.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        [HttpGet("{id}/addresses")]
+        public async Task<IActionResult> GetAddresses(string id)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                return Ok(new { success = true, addresses = user.Addresses });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/addresses")]
+        public async Task<IActionResult> AddAddress(string id, [FromBody] dynamic addressData)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                var address = new Address
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FullName = addressData.GetProperty("fullName").GetString(),
+                    PhoneNumber = addressData.GetProperty("phone").GetString(),
+                    AddressLine1 = addressData.GetProperty("addressLine1").GetString(),
+                    AddressLine2 = addressData.GetProperty("addressLine2").GetString(),
+                    City = addressData.GetProperty("city").GetString(),
+                    State = addressData.GetProperty("state").GetString(),
+                    PinCode = addressData.GetProperty("zipCode").GetString(),
+                    Country = addressData.GetProperty("country").GetString(),
+                    AddressType = addressData.GetProperty("addressType")?.GetString() ?? "Home",
+                    IsDefault = addressData.GetProperty("isDefault")?.GetBoolean() ?? false
+                };
+
+                // If this is set as default, unset other default addresses
+                if (address.IsDefault)
+                {
+                    foreach (var addr in user.Addresses)
+                    {
+                        addr.IsDefault = false;
+                    }
+                }
+
+                user.Addresses.Add(address);
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.Users.ReplaceOneAsync(u => u.Id == id, user);
+
+                return Ok(new { success = true, address, message = "Address added successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/addresses/{addressId}")]
+        public async Task<IActionResult> UpdateAddress(string id, string addressId, [FromBody] dynamic addressData)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                var address = user.Addresses.FirstOrDefault(a => a.Id == addressId);
+                if (address == null)
+                {
+                    return NotFound(new { success = false, message = "Address not found" });
+                }
+
+                // If this is set as default, unset other default addresses
+                var isDefault = addressData.GetProperty("isDefault")?.GetBoolean() ?? false;
+                if (isDefault)
+                {
+                    foreach (var addr in user.Addresses)
+                    {
+                        addr.IsDefault = false;
+                    }
+                }
+
+                address.FullName = addressData.GetProperty("fullName").GetString();
+                address.PhoneNumber = addressData.GetProperty("phone").GetString();
+                address.AddressLine1 = addressData.GetProperty("addressLine1").GetString();
+                address.AddressLine2 = addressData.GetProperty("addressLine2").GetString();
+                address.City = addressData.GetProperty("city").GetString();
+                address.State = addressData.GetProperty("state").GetString();
+                address.PinCode = addressData.GetProperty("zipCode").GetString();
+                address.Country = addressData.GetProperty("country").GetString();
+                address.AddressType = addressData.GetProperty("addressType")?.GetString() ?? "Home";
+                address.IsDefault = isDefault;
+
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.Users.ReplaceOneAsync(u => u.Id == id, user);
+
+                return Ok(new { success = true, address, message = "Address updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}/addresses/{addressId}")]
+        public async Task<IActionResult> DeleteAddress(string id, string addressId)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                var address = user.Addresses.FirstOrDefault(a => a.Id == addressId);
+                if (address == null)
+                {
+                    return NotFound(new { success = false, message = "Address not found" });
+                }
+
+                user.Addresses.Remove(address);
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.Users.ReplaceOneAsync(u => u.Id == id, user);
+
+                return Ok(new { success = true, message = "Address deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/addresses/{addressId}/default")]
+        public async Task<IActionResult> SetDefaultAddress(string id, string addressId)
+        {
+            try
+            {
+                var user = await _context.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                var address = user.Addresses.FirstOrDefault(a => a.Id == addressId);
+                if (address == null)
+                {
+                    return NotFound(new { success = false, message = "Address not found" });
+                }
+
+                // Unset all default addresses
+                foreach (var addr in user.Addresses)
+                {
+                    addr.IsDefault = false;
+                }
+
+                // Set the selected address as default
+                address.IsDefault = true;
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.Users.ReplaceOneAsync(u => u.Id == id, user);
+
+                return Ok(new { success = true, message = "Default address updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }

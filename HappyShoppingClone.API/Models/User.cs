@@ -47,6 +47,7 @@ public class Address
     public string City { get; set; } = string.Empty;
     public string State { get; set; } = string.Empty;
     public string PinCode { get; set; } = string.Empty;
+    public string Country { get; set; } = string.Empty;
     public string AddressType { get; set; } = "Home"; // Home, Office, Other
     public bool IsDefault { get; set; } = false;
 }
