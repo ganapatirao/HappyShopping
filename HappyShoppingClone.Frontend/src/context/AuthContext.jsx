@@ -16,26 +16,51 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const initializeAuth = () => {
+      const storedUser = localStorage.getItem('user');
+      const storedTokenExpiry = localStorage.getItem('tokenExpiry');
+      
+      if (storedUser && storedTokenExpiry) {
+        const tokenExpiry = new Date(storedTokenExpiry);
+        const now = new Date();
+        
+        // Check if token is expired
+        if (now > tokenExpiry) {
+          // Token expired, clear localStorage
+          localStorage.removeItem('user');
+          localStorage.removeItem('tokenExpiry');
+          localStorage.removeItem('sessionToken');
+          setUser(null);
+        } else {
+          // Token valid, restore user session
+          setUser(JSON.parse(storedUser));
+        }
+      }
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = (user) => {
+  const login = (user, sessionToken, tokenExpiry) => {
     setUser(user);
     localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('sessionToken', sessionToken);
+    localStorage.setItem('tokenExpiry', tokenExpiry);
   };
 
-  const register = (user) => {
+  const register = (user, sessionToken, tokenExpiry) => {
     setUser(user);
     localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('sessionToken', sessionToken);
+    localStorage.setItem('tokenExpiry', tokenExpiry);
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('sessionToken');
+    localStorage.removeItem('tokenExpiry');
   };
 
   const upgradeToPremier = async () => {

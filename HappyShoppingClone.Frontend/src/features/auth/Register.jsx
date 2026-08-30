@@ -157,7 +157,7 @@ const RegisterPage = () => {
       });
       
       if (response.data.success) {
-        register(response.data.user);
+        register(response.data.user, response.data.sessionToken, response.data.tokenExpiry);
         navigate('/');
       } else {
         setError(response.data.error || 'Registration failed');

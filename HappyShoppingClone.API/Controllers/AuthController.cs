@@ -53,7 +53,11 @@ public class AuthController : ControllerBase
 
         await _context.Users.InsertOneAsync(newUser);
 
-        return Ok(new { success = true, user = new { id = newUser.Id, fullName = newUser.FullName, email = newUser.Email, role = newUser.Role, isPremier = newUser.IsPremier } });
+        // Generate session token with expiry (7 days)
+        var sessionToken = Guid.NewGuid().ToString();
+        var tokenExpiry = DateTime.UtcNow.AddDays(7);
+
+        return Ok(new { success = true, user = new { id = newUser.Id, fullName = newUser.FullName, email = newUser.Email, role = newUser.Role, isPremier = newUser.IsPremier }, sessionToken, tokenExpiry });
     }
 
     [HttpPost("login")]
@@ -107,16 +111,20 @@ public class AuthController : ControllerBase
         user.FailedLoginAttempts = 0;
         user.LockoutUntil = null;
         user.UpdatedAt = DateTime.UtcNow;
-        
+
         // Ensure user has an ID
         if (string.IsNullOrEmpty(user.Id))
         {
             user.Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
         }
-        
+
         await _context.Users.ReplaceOneAsync(u => u.Id == user.Id, user);
 
-        return Ok(new { success = true, user = new { id = user.Id, fullName = user.FullName, email = user.Email, role = user.Role, isPremier = user.IsPremier, premierExpiryDate = user.PremierExpiryDate } });
+        // Generate session token with expiry (7 days)
+        var sessionToken = Guid.NewGuid().ToString();
+        var tokenExpiry = DateTime.UtcNow.AddDays(7);
+
+        return Ok(new { success = true, user = new { id = user.Id, fullName = user.FullName, email = user.Email, role = user.Role, isPremier = user.IsPremier, premierExpiryDate = user.PremierExpiryDate }, sessionToken, tokenExpiry });
     }
 
     [HttpPost("forgot-password")]

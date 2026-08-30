@@ -20,6 +20,7 @@ export const authAPI = {
   generateCaptcha: () => api.post('/auth/generate-captcha'),
   verifyCaptcha: (data) => api.post('/auth/verify-captcha', data),
   getValidationRules: () => api.get('/auth/validation-rules'),
+  getUserById: (id) => api.get(`/User/${id}`),
 };
 
 // Vendor API
@@ -122,19 +123,19 @@ export const siteConfigAPI = {
 
 // User API
 export const userAPI = {
-  getAll: () => api.get('/user'),
-  getById: (id) => api.get(`/user/${id}`),
-  update: (id, data) => api.put(`/user/${id}`, data),
-  delete: (id) => api.delete(`/user/${id}`),
-  updateRole: (id, data) => api.put(`/user/${id}/role`, data),
-  toggleActive: (id) => api.put(`/user/${id}/toggle-active`),
-  changePassword: (id, data) => api.post(`/user/${id}/change-password`, data),
-  updatePreferences: (id, data) => api.put(`/user/${id}/preferences`, data),
-  addToWishlist: (id, data) => api.post(`/user/${id}/wishlist`, data),
-  removeFromWishlist: (id, productId) => api.delete(`/user/${id}/wishlist/${productId}`),
-  getWishlist: (id) => api.get(`/user/${id}/wishlist`),
-  validateAddress: (userId, data) => api.post(`/user/${userId}/addresses/validate`, data),
-  validatePaymentMethod: (userId, data) => api.post(`/user/${userId}/payment-methods/validate`, data),
+  getAll: () => api.get('/User'),
+  getById: (id) => api.get(`/User/${id}`),
+  update: (id, data) => api.put(`/User/${id}`, data),
+  delete: (id) => api.delete(`/User/${id}`),
+  updateRole: (id, data) => api.put(`/User/${id}/role`, data),
+  toggleActive: (id) => api.put(`/User/${id}/toggle-active`),
+  changePassword: (id, data) => api.post(`/User/${id}/change-password`, data),
+  updatePreferences: (id, data) => api.put(`/User/${id}/preferences`, data),
+  addToWishlist: (id, data) => api.post(`/User/${id}/wishlist`, data),
+  removeFromWishlist: (id, productId) => api.delete(`/User/${id}/wishlist/${productId}`),
+  getWishlist: (id) => api.get(`/User/${id}/wishlist`),
+  validateAddress: (userId, data) => api.post(`/User/${userId}/addresses/validate`, data),
+  validatePaymentMethod: (userId, data) => api.post(`/User/${userId}/payment-methods/validate`, data),
 };
 
 // Payment API

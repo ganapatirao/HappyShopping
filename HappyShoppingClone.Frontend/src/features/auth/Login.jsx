@@ -147,7 +147,7 @@ const LoginPage = () => {
 
       const response = await authAPI.login({ email, password, captchaToken: 'test' });
       if (response.data.success) {
-        login(response.data.user);
+        login(response.data.user, response.data.sessionToken, response.data.tokenExpiry);
         navigate(from, { replace: true });
       } else {
         setError(response.data.error || 'Login failed');
