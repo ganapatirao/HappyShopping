@@ -15,6 +15,7 @@ const CartPage = () => {
   const { cart, cartCount, removeFromCart, updateQuantity, clearCart, loadCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const [checkoutStep, setCheckoutStep] = useState('cart'); // cart, shipping, payment, success
+  const [completedOrder, setCompletedOrder] = useState(null);
   const [shippingAddress, setShippingAddress] = useState({
     fullName: '',
     phoneNumber: '',
@@ -429,6 +430,12 @@ const CartPage = () => {
 
       const response = await paymentAPI.checkout(checkoutRequest);
       if (response.data.success) {
+        setCompletedOrder({
+          orderId: response.data.orderId,
+          paymentId: response.data.paymentId,
+          totalAmount: response.data.totalAmount,
+          paymentMethod: paymentMethod
+        });
         setToast({ show: true, message: 'Order placed successfully!', type: 'success' });
         clearCart();
         setCheckoutStep('success');
@@ -538,15 +545,15 @@ const CartPage = () => {
               <div className="space-y-2 md:space-y-3">
                 <div className="flex justify-between items-center py-1 border-b border-gray-200">
                   <span className="text-gray-600 text-sm md:text-base">Order ID:</span>
-                  <span className="font-semibold text-purple-600 text-sm md:text-base">#ORD-{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+                  <span className="font-semibold text-purple-600 text-sm md:text-base">#{completedOrder?.orderId?.substring(0, 8).toUpperCase() || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-gray-200">
                   <span className="text-gray-600 text-sm md:text-base">Payment Method:</span>
-                  <span className="font-semibold text-gray-800 text-sm md:text-base">{paymentMethod}</span>
+                  <span className="font-semibold text-gray-800 text-sm md:text-base">{completedOrder?.paymentMethod || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-gray-200">
                   <span className="text-gray-600 text-sm md:text-base">Total Amount:</span>
-                  <span className="font-bold text-lg md:text-2xl text-purple-600">₹{cart?.totalAmount?.toLocaleString() || 0}</span>
+                  <span className="font-bold text-lg md:text-2xl text-purple-600">₹{completedOrder?.totalAmount?.toLocaleString() || 0}</span>
                 </div>
                 <div className="flex justify-between items-center py-1">
                   <span className="text-gray-600 text-sm md:text-base">Estimated Delivery:</span>

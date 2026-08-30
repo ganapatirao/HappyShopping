@@ -193,7 +193,27 @@ const UserDashboard = () => {
       const response = await fetch(`${API_BASE_URL}/order/user/${user.id}`);
       const data = await response.json();
       if (data.success) {
-        setOrders(data.orders || []);
+        // Normalize order data structure from PascalCase to camelCase
+        const normalizedOrders = (data.orders || []).map(order => ({
+          id: order._id || order.Id || order.id,
+          userId: order.UserId || order.userId,
+          items: order.Items || order.items,
+          totalAmount: order.TotalAmount || order.totalAmount,
+          discountAmount: order.DiscountAmount || order.discountAmount,
+          finalAmount: order.FinalAmount || order.finalAmount,
+          status: order.Status || order.status,
+          paymentStatus: order.PaymentStatus || order.paymentStatus,
+          paymentMethod: order.PaymentMethod || order.paymentMethod,
+          orderDate: order.OrderDate || order.orderDate,
+          estimatedDeliveryDate: order.EstimatedDeliveryDate || order.estimatedDeliveryDate,
+          deliveryDate: order.DeliveryDate || order.deliveryDate,
+          trackingNumber: order.TrackingNumber || order.trackingNumber,
+          shippingAddress: order.ShippingAddress || order.shippingAddress,
+          statusHistory: order.StatusHistory || order.statusHistory,
+          isPremierOrder: order.IsPremierOrder || order.isPremierOrder,
+          premierDiscount: order.PremierDiscount || order.premierDiscount
+        }));
+        setOrders(normalizedOrders);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);

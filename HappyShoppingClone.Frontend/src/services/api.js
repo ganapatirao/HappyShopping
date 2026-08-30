@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = 'http://localhost:5041/api';
+export const API_BASE_URL = 'http://localhost:5042/api';
 //export const API_BASE_URL = 'https://ganeshtech2017.runasp.net/api';
 
 const api = axios.create({
