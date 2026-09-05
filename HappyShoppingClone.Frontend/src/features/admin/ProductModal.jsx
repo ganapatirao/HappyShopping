@@ -150,82 +150,86 @@ const ProductModal = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-2 sm:mx-0">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-3 sm:p-4 md:p-6 rounded-t-2xl">
-          <div className="flex items-center justify-between">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl max-h-[95vh] sm:max-h-[95vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 mx-0 sm:mx-0 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
+        {/* Header with enhanced gradient */}
+        <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-4 sm:p-5 md:p-6 rounded-t-2xl shadow-lg relative overflow-hidden sticky top-0 z-20">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
+          
+          <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                <Package size={20} sm:size={24} className="text-white" />
+              <div className="bg-white/20 p-2 sm:p-2.5 md:p-3 rounded-xl backdrop-blur-sm ring-2 ring-white/30 shadow-lg">
+                <Package size={18} sm:size={20} md:size={24} className="text-white" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold text-white">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white tracking-tight">
                   {editingProduct ? 'Edit Product' : 'Add Product'}
                 </h3>
-                <p className="text-purple-100 text-xs sm:text-sm">
+                <p className="text-purple-100 text-[10px] sm:text-xs md:text-sm font-medium">
                   {editingProduct ? 'Update product details' : 'Create a new product'}
                 </p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition-all"
+              className="bg-white/20 hover:bg-white/30 p-2 sm:p-2.5 md:p-3 rounded-xl backdrop-blur-sm transition-all ring-2 ring-white/30 hover:ring-white/50 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
             >
-              <X size={18} sm:size={20} className="text-white" />
+              <X size={16} sm:size={18} md:size={20} className="text-white" />
             </button>
           </div>
         </div>
         
-        <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-5">
+        <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-5">
           {/* Product Name & Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700">
+                <span className="w-1.5 h-4 sm:h-5 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full shadow-md"></span>
                 Product Name <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <input
                   type="text"
                   value={productForm.name}
                   onChange={(e) => handleFieldChange('name', e.target.value)}
                   onBlur={() => handleFieldBlur('name', productForm.name)}
                   onMouseOut={() => handleFieldMouseOut('name', productForm.name)}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-4 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 pl-4 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all shadow-sm text-sm sm:text-base ${
                     validationErrors.name && touchedFields.name
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 bg-red-50/30'
+                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 bg-white group-hover:border-purple-300'
                   }`}
                   placeholder="Product name"
                 />
                 {validationErrors.name && touchedFields.name && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <AlertCircle size={16} className="text-red-500" />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 animate-pulse">
+                    <AlertCircle size={14} sm:size={16} className="text-red-500" />
                   </div>
                 )}
               </div>
               {validationErrors.name && touchedFields.name && (
-                <div className="flex items-center gap-2 mt-1.5 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-                  <span className="text-xs text-red-700 font-medium">{validationErrors.name}</span>
+                <div className="flex items-center gap-2 mt-1 sm:mt-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-2 duration-200">
+                  <AlertCircle size={12} sm:size={14} className="text-red-500 flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-red-700 font-medium">{validationErrors.name}</span>
                 </div>
               )}
             </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700">
+                <span className="w-1.5 h-4 sm:h-5 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full shadow-md"></span>
                 Category <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <select
                   value={productForm.categoryId}
                   onChange={(e) => handleFieldChange('categoryId', e.target.value)}
                   onBlur={() => handleFieldBlur('categoryId', productForm.categoryId)}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-12 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all appearance-none bg-white ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 pl-10 sm:pl-12 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all appearance-none bg-white shadow-sm cursor-pointer text-sm sm:text-base ${
                     validationErrors.categoryId && touchedFields.categoryId
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 bg-red-50/30'
+                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 group-hover:border-purple-300'
                   }`}
                 >
                   <option value="">Select a category</option>
@@ -235,38 +239,38 @@ const ProductModal = ({
                     </option>
                   ))}
                 </select>
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">▼</span>
+                <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-purple-500 transition-colors text-xs sm:text-sm">▼</span>
                 {validationErrors.categoryId && touchedFields.categoryId && (
-                  <div className="absolute right-8 top-1/2 -translate-y-1/2">
-                    <AlertCircle size={16} className="text-red-500" />
+                  <div className="absolute right-7 sm:right-8 top-1/2 -translate-y-1/2 animate-pulse">
+                    <AlertCircle size={14} sm:size={16} className="text-red-500" />
                   </div>
                 )}
               </div>
               {validationErrors.categoryId && touchedFields.categoryId && (
-                <div className="flex items-center gap-2 mt-1.5 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-                  <span className="text-xs text-red-700 font-medium">{validationErrors.categoryId}</span>
+                <div className="flex items-center gap-2 mt-1 sm:mt-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-2 duration-200">
+                  <AlertCircle size={12} sm:size={14} className="text-red-500 flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-red-700 font-medium">{validationErrors.categoryId}</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* SubCategory & Stock */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700">
+                <span className="w-1.5 h-4 sm:h-5 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full shadow-md"></span>
                 SubCategory <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <select
                   value={productForm.subCategoryId}
                   onChange={(e) => handleFieldChange('subCategoryId', e.target.value)}
                   onBlur={() => handleFieldBlur('subCategoryId', productForm.subCategoryId)}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-12 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all appearance-none bg-white ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 pl-10 sm:pl-12 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all appearance-none bg-white shadow-sm cursor-pointer text-sm sm:text-base ${
                     validationErrors.subCategoryId && touchedFields.subCategoryId
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 bg-red-50/30'
+                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 group-hover:border-purple-300'
                   }`}
                 >
                   <option value="">Select a subcategory</option>
@@ -278,48 +282,48 @@ const ProductModal = ({
                       </option>
                     ))}
                 </select>
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">▼</span>
+                <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-purple-500 transition-colors text-xs sm:text-sm">▼</span>
                 {validationErrors.subCategoryId && touchedFields.subCategoryId && (
-                  <div className="absolute right-8 top-1/2 -translate-y-1/2">
-                    <AlertCircle size={16} className="text-red-500" />
+                  <div className="absolute right-7 sm:right-8 top-1/2 -translate-y-1/2 animate-pulse">
+                    <AlertCircle size={14} sm:size={16} className="text-red-500" />
                   </div>
                 )}
               </div>
               {validationErrors.subCategoryId && touchedFields.subCategoryId && (
-                <div className="flex items-center gap-2 mt-1.5 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-                  <span className="text-xs text-red-700 font-medium">{validationErrors.subCategoryId}</span>
+                <div className="flex items-center gap-2 mt-1 sm:mt-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-2 duration-200">
+                  <AlertCircle size={12} sm:size={14} className="text-red-500 flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-red-700 font-medium">{validationErrors.subCategoryId}</span>
                 </div>
               )}
             </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <span className="w-1 h-4 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full"></span>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700">
+                <span className="w-1.5 h-4 sm:h-5 bg-gradient-to-b from-purple-600 to-pink-500 rounded-full shadow-md"></span>
                 Stock <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <input
                   type="number"
                   value={productForm.stock}
                   onChange={(e) => handleFieldChange('stock', e.target.value)}
                   onBlur={() => handleFieldBlur('stock', productForm.stock)}
-                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 pl-4 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 pl-4 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all shadow-sm text-sm sm:text-base ${
                     validationErrors.stock && touchedFields.stock
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 bg-red-50/30'
+                      : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 bg-white group-hover:border-purple-300'
                   }`}
                   placeholder="0"
                 />
                 {validationErrors.stock && touchedFields.stock && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <AlertCircle size={16} className="text-red-500" />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 animate-pulse">
+                    <AlertCircle size={14} sm:size={16} className="text-red-500" />
                   </div>
                 )}
               </div>
               {validationErrors.stock && touchedFields.stock && (
-                <div className="flex items-center gap-2 mt-1.5 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-                  <span className="text-xs text-red-700 font-medium">{validationErrors.stock}</span>
+                <div className="flex items-center gap-2 mt-1 sm:mt-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-2 duration-200">
+                  <AlertCircle size={12} sm:size={14} className="text-red-500 flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-red-700 font-medium">{validationErrors.stock}</span>
                 </div>
               )}
             </div>
@@ -491,8 +495,8 @@ const ProductModal = ({
           </div>
 
           {/* Toggle Switches */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 pt-2">
-            <label className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl cursor-pointer hover:from-green-100 hover:to-emerald-100 transition-all border-2 border-transparent hover:border-green-300">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4 pt-2">
+            <label className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl cursor-pointer hover:from-green-100 hover:to-emerald-100 transition-all border-2 border-transparent hover:border-green-300 active:scale-95">
               <div className="relative">
                 <input
                   type="checkbox"
@@ -500,14 +504,14 @@ const ProductModal = ({
                   onChange={(e) => setProductForm({ ...productForm, isActive: e.target.checked })}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-emerald-500"></div>
+                <div className="w-10 sm:w-11 h-5 sm:h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 sm:after:h-5 after:w-4 sm:after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-emerald-500"></div>
               </div>
               <div>
-                <span className="text-sm font-semibold text-gray-700">Active</span>
-                <p className="text-xs text-gray-500">Visible to users</p>
+                <span className="text-xs sm:text-sm font-semibold text-gray-700">Active</span>
+                <p className="text-[10px] sm:text-xs text-gray-500">Visible to users</p>
               </div>
             </label>
-            <label className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl cursor-pointer hover:from-purple-100 hover:to-pink-100 transition-all border-2 border-transparent hover:border-purple-300">
+            <label className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl cursor-pointer hover:from-purple-100 hover:to-pink-100 transition-all border-2 border-transparent hover:border-purple-300 active:scale-95">
               <div className="relative">
                 <input
                   type="checkbox"
@@ -515,14 +519,14 @@ const ProductModal = ({
                   onChange={(e) => setProductForm({ ...productForm, isFeatured: e.target.checked })}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-pink-500"></div>
+                <div className="w-10 sm:w-11 h-5 sm:h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 sm:after:h-5 after:w-4 sm:after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-pink-500"></div>
               </div>
               <div>
-                <span className="text-sm font-semibold text-gray-700">Featured</span>
-                <p className="text-xs text-gray-500">Show on homepage</p>
+                <span className="text-xs sm:text-sm font-semibold text-gray-700">Featured</span>
+                <p className="text-[10px] sm:text-xs text-gray-500">Show on homepage</p>
               </div>
             </label>
-            <label className="flex items-center gap-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl cursor-pointer hover:from-orange-100 hover:to-amber-100 transition-all border-2 border-transparent hover:border-orange-300">
+            <label className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl cursor-pointer hover:from-orange-100 hover:to-amber-100 transition-all border-2 border-transparent hover:border-orange-300 active:scale-95">
               <div className="relative">
                 <input
                   type="checkbox"
@@ -530,26 +534,28 @@ const ProductModal = ({
                   onChange={(e) => setProductForm({ ...productForm, isTrending: e.target.checked })}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-amber-500"></div>
+                <div className="w-10 sm:w-11 h-5 sm:h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 sm:after:h-5 after:w-4 sm:after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-amber-500"></div>
               </div>
               <div>
-                <span className="text-sm font-semibold text-gray-700">Trending</span>
-                <p className="text-xs text-gray-500">Popular items</p>
+                <span className="text-xs sm:text-sm font-semibold text-gray-700">Trending</span>
+                <p className="text-[10px] sm:text-xs text-gray-500">Popular items</p>
               </div>
             </label>
           </div>
 
           {/* Product Highlights Section */}
-          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <button
               onClick={() => setExpandedSections({ ...expandedSections, highlights: !expandedSections.highlights })}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 transition-all"
+              className="w-full flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-2">
-                <Zap className="text-orange-600" size={18} />
-                <span className="font-semibold text-gray-800">Product Highlights</span>
+                <div className="bg-gradient-to-br from-yellow-500 to-orange-500 p-1 sm:p-1.5 rounded-lg shadow-md">
+                  <Zap className="text-white" size={14} sm:size={16} />
+                </div>
+                <span className="font-semibold text-gray-800 text-sm sm:text-base">Product Highlights</span>
               </div>
-              {expandedSections.highlights ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {expandedSections.highlights ? <ChevronUp size={16} sm:size={18} className="text-orange-600" /> : <ChevronDown size={16} sm:size={18} className="text-orange-600" />}
             </button>
             {expandedSections.highlights && (
               <div className="p-4 space-y-3">
@@ -606,16 +612,18 @@ const ProductModal = ({
           </div>
 
           {/* Delivery Information Section */}
-          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <button
               onClick={() => setExpandedSections({ ...expandedSections, delivery: !expandedSections.delivery })}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all"
+              className="w-full flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-2">
-                <Truck className="text-blue-600" size={18} />
-                <span className="font-semibold text-gray-800">Delivery Information</span>
+                <div className="bg-gradient-to-br from-blue-500 to-purple-500 p-1 sm:p-1.5 rounded-lg shadow-md">
+                  <Truck className="text-white" size={14} sm:size={16} />
+                </div>
+                <span className="font-semibold text-gray-800 text-sm sm:text-base">Delivery Information</span>
               </div>
-              {expandedSections.delivery ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {expandedSections.delivery ? <ChevronUp size={16} sm:size={18} className="text-blue-600" /> : <ChevronDown size={16} sm:size={18} className="text-blue-600" />}
             </button>
             {expandedSections.delivery && (
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -717,16 +725,18 @@ const ProductModal = ({
           </div>
 
           {/* Offers Section */}
-          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <button
               onClick={() => setExpandedSections({ ...expandedSections, offers: !expandedSections.offers })}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all"
+              className="w-full flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-2">
-                <Gift className="text-purple-600" size={18} />
-                <span className="font-semibold text-gray-800">Product Offers</span>
+                <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-1 sm:p-1.5 rounded-lg shadow-md">
+                  <Gift className="text-white" size={14} sm:size={16} />
+                </div>
+                <span className="font-semibold text-gray-800 text-sm sm:text-base">Product Offers</span>
               </div>
-              {expandedSections.offers ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {expandedSections.offers ? <ChevronUp size={16} sm:size={18} className="text-purple-600" /> : <ChevronDown size={16} sm:size={18} className="text-purple-600" />}
             </button>
             {expandedSections.offers && (
               <div className="p-4 space-y-3">
@@ -829,16 +839,18 @@ const ProductModal = ({
           </div>
 
           {/* Specifications Section */}
-          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <button
               onClick={() => setExpandedSections({ ...expandedSections, specifications: !expandedSections.specifications })}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-cyan-50 to-blue-50 hover:from-cyan-100 hover:to-blue-100 transition-all"
+              className="w-full flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-cyan-50 to-blue-50 hover:from-cyan-100 hover:to-blue-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-2">
-                <Info className="text-cyan-600" size={18} />
-                <span className="font-semibold text-gray-800">Specifications</span>
+                <div className="bg-gradient-to-br from-cyan-500 to-blue-500 p-1 sm:p-1.5 rounded-lg shadow-md">
+                  <Info className="text-white" size={14} sm:size={16} />
+                </div>
+                <span className="font-semibold text-gray-800 text-sm sm:text-base">Specifications</span>
               </div>
-              {expandedSections.specifications ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {expandedSections.specifications ? <ChevronUp size={16} sm:size={18} className="text-cyan-600" /> : <ChevronDown size={16} sm:size={18} className="text-cyan-600" />}
             </button>
             {expandedSections.specifications && (
               <div className="p-4 space-y-3">
@@ -912,16 +924,18 @@ const ProductModal = ({
           </div>
 
           {/* Product Details Section */}
-          <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+          <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <button
               onClick={() => setExpandedSections({ ...expandedSections, productDetails: !expandedSections.productDetails })}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 transition-all"
+              className="w-full flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-2">
-                <Tag className="text-orange-600" size={18} />
-                <span className="font-semibold text-gray-800">Product Details</span>
+                <div className="bg-gradient-to-br from-orange-500 to-amber-500 p-1 sm:p-1.5 rounded-lg shadow-md">
+                  <Tag className="text-white" size={14} sm:size={16} />
+                </div>
+                <span className="font-semibold text-gray-800 text-sm sm:text-base">Product Details</span>
               </div>
-              {expandedSections.productDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {expandedSections.productDetails ? <ChevronUp size={16} sm:size={18} className="text-orange-600" /> : <ChevronDown size={16} sm:size={18} className="text-orange-600" />}
             </button>
             {expandedSections.productDetails && (
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -971,20 +985,20 @@ const ProductModal = ({
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+        <div className="flex gap-2 sm:gap-3 p-3 sm:p-4 md:p-6 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-purple-50/30 rounded-b-2xl sticky bottom-0 z-10">
           <button
             onClick={onClose}
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-100 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
+            className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-100 hover:border-gray-400 transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] active:scale-95 text-sm sm:text-base"
           >
-            <X size={18} />
-            Cancel
+            <X size={14} sm:size={16} md:size={18} />
+            <span className="hidden sm:inline">Cancel</span>
           </button>
           <button
             onClick={handleSaveClick}
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl hover:shadow-purple-500/30 flex items-center justify-center gap-1.5 sm:gap-2 transform hover:scale-[1.02] active:scale-95 ring-2 ring-purple-500/20 hover:ring-purple-500/50 text-sm sm:text-base"
           >
-            {editingProduct ? <Edit size={18} /> : <Plus size={18} />}
-            {editingProduct ? 'Update' : 'Create'}
+            {editingProduct ? <Edit size={14} sm:size={16} md:size={18} /> : <Plus size={14} sm:size={16} md:size={18} />}
+            {editingProduct ? <span className="hidden sm:inline">Update</span> : <span className="hidden sm:inline">Create</span>}
           </button>
         </div>
       </div>

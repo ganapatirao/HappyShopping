@@ -54,14 +54,14 @@ export const searchAPI = {
 
 // Order API
 export const orderAPI = {
-  create: (data) => api.post('/order', data),
-  getAll: () => api.get('/order'),
-  getByUser: (userId) => api.get(`/order/user/${userId}`),
-  getById: (id) => api.get(`/order/${id}`),
-  updateStatus: (id, data) => api.put(`/order/${id}/status`, data),
-  updatePayment: (id, data) => api.put(`/order/${id}/payment`, data),
-  updateTracking: (id, data) => api.put(`/order/${id}/tracking`, data),
-  delete: (id) => api.delete(`/order/${id}`),
+  create: (data) => api.post('/Order', data),
+  getAll: () => api.get('/Order'),
+  getByUser: (userId) => api.get(`/Order/user/${userId}`),
+  getById: (id) => api.get(`/Order/${id}`),
+  updateStatus: (id, data) => api.put(`/Order/${id}/status`, data),
+  updatePayment: (id, data) => api.put(`/Order/${id}/payment`, data),
+  updateTracking: (id, data) => api.put(`/Order/${id}/tracking`, data),
+  delete: (id) => api.delete(`/Order/${id}`),
 };
 
 // Category API

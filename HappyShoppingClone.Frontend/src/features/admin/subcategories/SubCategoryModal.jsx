@@ -146,33 +146,33 @@ const SubCategoryModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300 mx-2 sm:mx-0 border border-slate-200/50">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 p-4 sm:p-6 rounded-t-3xl relative overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[95vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 mx-0 sm:mx-0 scrollbar-thin scrollbar-thumb-violet-300 scrollbar-track-violet-100">
+        {/* Header with enhanced gradient */}
+        <div className="bg-gradient-to-r from-violet-600 via-purple-500 to-fuchsia-500 p-4 sm:p-5 md:p-6 rounded-t-2xl shadow-lg relative overflow-hidden sticky top-0 z-20">
           {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
           
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-lg">
-                <FolderOpen size={24} sm:size={28} className="text-white" />
+          <div className="flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-white/20 p-2 sm:p-2.5 md:p-3 rounded-xl backdrop-blur-sm ring-2 ring-white/30 shadow-lg">
+                <FolderOpen size={18} sm:size={20} md:size={24} className="text-white" />
               </div>
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white tracking-tight">
                   {editingSubCategory ? 'Edit SubCategory' : 'Add SubCategory'}
                 </h3>
-                <p className="text-violet-100 text-sm sm:text-base mt-1">
+                <p className="text-violet-100 text-[10px] sm:text-xs md:text-sm font-medium">
                   {editingSubCategory ? 'Update subcategory details' : 'Create a new subcategory'}
                 </p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="bg-white/20 hover:bg-white/30 p-2.5 rounded-xl backdrop-blur-sm transition-all hover:scale-110"
+              className="bg-white/20 hover:bg-white/30 p-2 sm:p-2.5 md:p-3 rounded-xl backdrop-blur-sm transition-all ring-2 ring-white/30 hover:ring-white/50 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
             >
-              <X size={20} sm:size={24} className="text-white" />
+              <X size={16} sm:size={18} md:size={20} className="text-white" />
             </button>
           </div>
         </div>
@@ -468,20 +468,20 @@ const SubCategoryModal = ({
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex gap-3 sm:gap-4 p-4 sm:p-6 border-t border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 rounded-b-3xl">
+        <div className="flex gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 md:p-6 border-t border-slate-200 bg-gradient-to-r from-slate-50 to-violet-50/30 rounded-b-2xl sticky bottom-0 z-10">
           <button
             onClick={onClose}
-            className="flex-1 px-4 sm:px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-100 hover:border-slate-400 transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+            className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-100 hover:border-slate-400 transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] active:scale-95 text-sm sm:text-base"
           >
-            <X size={18} />
-            Cancel
+            <X size={14} sm:size={16} md:size={18} />
+            <span className="hidden sm:inline">Cancel</span>
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 sm:px-6 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 flex items-center justify-center gap-2 text-sm sm:text-base"
+            className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl hover:shadow-violet-500/30 flex items-center justify-center gap-1.5 sm:gap-2 transform hover:scale-[1.02] active:scale-95 ring-2 ring-violet-500/20 hover:ring-violet-500/50 text-sm sm:text-base"
           >
-            {editingSubCategory ? <Edit size={18} /> : <Plus size={18} />}
-            {editingSubCategory ? 'Update SubCategory' : 'Create SubCategory'}
+            {editingSubCategory ? <Edit size={14} sm:size={16} md:size={18} /> : <Plus size={14} sm:size={16} md:size={18} />}
+            <span className="hidden sm:inline">{editingSubCategory ? 'Update' : 'Create'}</span>
           </button>
         </div>
       </div>

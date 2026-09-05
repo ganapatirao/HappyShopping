@@ -43,8 +43,6 @@ import {
 
   FolderOpen,
 
-  UserCheck,
-
   Shield,
 
   Power,
@@ -155,6 +153,8 @@ const AdminDashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const [customerDetailsMap, setCustomerDetailsMap] = useState({});
 
   
 
@@ -796,7 +796,7 @@ const AdminDashboard = () => {
 
         const completedOrders = orders.filter(o => o.Status === 'Delivered').length;
 
-        const totalRevenue = orders.reduce((sum, order) => sum + (order.TotalAmount || 0), 0);
+        const totalRevenue = orders.reduce((sum, order) => sum + (order.TotalAmount || order.totalAmount || 0), 0);
 
         setDashboardStats(prev => ({
 
@@ -811,6 +811,23 @@ const AdminDashboard = () => {
           totalRevenue,
 
         }));
+
+        // Fetch customer details for each order
+        const customerMap = {};
+        for (const order of orders) {
+          const userId = order.UserId || order.userId;
+          if (userId && !customerMap[userId]) {
+            try {
+              const userRes = await userAPI.getById(userId);
+              if (userRes.data.success) {
+                customerMap[userId] = userRes.data.user;
+              }
+            } catch (error) {
+              // Silently handle error
+            }
+          }
+        }
+        setCustomerDetailsMap(customerMap);
 
       }
 
@@ -2031,11 +2048,11 @@ const AdminDashboard = () => {
 
     { id: 'subcategories', label: 'SubCategories', icon: FolderOpen, section: 'management' },
 
-    { id: 'vendors', label: 'Vendors', icon: Users, section: 'management' },
+    { id: 'vendors', label: 'Vendors', icon: Menu, section: 'management' },
 
     { id: 'orders', label: 'Order Management', icon: ShoppingCart, section: 'management' },
 
-    { id: 'users', label: 'Users', icon: UserCheck, section: 'management' },
+    { id: 'users', label: 'Users', icon: Menu, section: 'management' },
 
     { id: 'configuration', label: 'Site Configuration', icon: Settings, section: 'configuration' },
 
@@ -2049,7 +2066,7 @@ const AdminDashboard = () => {
 
       {/* Header */}
 
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-4 md:py-6 sticky top-0 z-40">
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-4 md:py-6 sticky top-[4rem] z-40">
 
         <div className="container mx-auto px-3 sm:px-4">
 
@@ -2103,7 +2120,7 @@ const AdminDashboard = () => {
 
               >
 
-                <User size={16} />
+                <Menu size={16} />
 
                 <span>User Dashboard</span>
 
@@ -2264,7 +2281,7 @@ const AdminDashboard = () => {
                         }}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-700"
                       >
-                        <User size={18} />
+                        <Menu size={18} />
                         <span className="font-medium text-sm">User Dashboard</span>
                       </button>
                       <button
@@ -2294,7 +2311,7 @@ const AdminDashboard = () => {
 
           <aside className="hidden lg:block lg:w-64 flex-shrink-0">
 
-            <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 sticky top-24">
+            <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 sticky top-[8rem] max-h-[calc(100vh-10rem)] overflow-y-auto">
 
               <nav className="space-y-4 sm:space-y-6">
 
@@ -2394,7 +2411,7 @@ const AdminDashboard = () => {
 
             {activeTab === 'overview' && (
 
-              <OverviewStats dashboardStats={dashboardStats} />
+              <OverviewStats dashboardStats={dashboardStats} onNavigate={setActiveTab} recentOrders={orders} customerDetailsMap={customerDetailsMap} />
 
             )}
 

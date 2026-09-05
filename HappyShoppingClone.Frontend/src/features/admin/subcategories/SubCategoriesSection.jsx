@@ -1,4 +1,4 @@
-import { FolderOpen, Search, Grid3X3, Edit2, Trash2, Star, Eye, EyeOff, Plus, Package, LayoutGrid, TrendingUp, Layers } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Package, X, FolderOpen, Layers } from 'lucide-react';
 
 const SubCategoriesSection = ({ 
   subCategories, 
@@ -9,289 +9,328 @@ const SubCategoriesSection = ({
   categories,
   showToast
 }) => {
-  const activeCount = subCategories.filter(c => c.isActive).length;
-  const featuredCount = subCategories.filter(c => c.isFeatured).length;
-  
+  const filteredSubCategories = subCategories.filter(subCategory => {
+    const searchTerm = subCategoryFilter.search.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      subCategory.displayName?.toLowerCase().includes(searchTerm) ||
+      subCategory.name?.toLowerCase().includes(searchTerm) ||
+      subCategory.description?.toLowerCase().includes(searchTerm);
+    
+    const selectedCategories = subCategoryFilter.categoryId ? subCategoryFilter.categoryId.split(',') : [];
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(subCategory.categoryId);
+    
+    const selectedStatuses = subCategoryFilter.status ? subCategoryFilter.status.split(',') : [];
+    const matchesStatus = selectedStatuses.length === 0 ||
+      (selectedStatuses.includes('active') && subCategory.isActive) ||
+      (selectedStatuses.includes('inactive') && !subCategory.isActive) ||
+      (selectedStatuses.includes('featured') && subCategory.isFeatured);
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  const clearFilters = () => {
+    setSubCategoryFilter({ search: '', categoryId: '', status: '' });
+  };
+
+  const hasActiveFilters = subCategoryFilter.search || subCategoryFilter.categoryId || subCategoryFilter.status;
+
+  const toggleCategory = (categoryId) => {
+    const selectedCategories = subCategoryFilter.categoryId ? subCategoryFilter.categoryId.split(',') : [];
+    const newCategories = selectedCategories.includes(categoryId)
+      ? selectedCategories.filter(c => c !== categoryId)
+      : [...selectedCategories, categoryId];
+    setSubCategoryFilter({ ...subCategoryFilter, categoryId: newCategories.join(',') });
+  };
+
+  const toggleStatus = (statusValue) => {
+    const selectedStatuses = subCategoryFilter.status ? subCategoryFilter.status.split(',') : [];
+    const newStatuses = selectedStatuses.includes(statusValue)
+      ? selectedStatuses.filter(s => s !== statusValue)
+      : [...selectedStatuses, statusValue];
+    setSubCategoryFilter({ ...subCategoryFilter, status: newStatuses.join(',') });
+  };
+
+  const statusOptions = [
+    { label: 'Active', value: 'active', color: 'green' },
+    { label: 'Inactive', value: 'inactive', color: 'gray' },
+    { label: 'Featured', value: 'featured', color: 'amber' }
+  ];
+
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 rounded-3xl shadow-2xl border border-slate-200/70 p-4 sm:p-6 md:p-8 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-      
-      {/* Header Section */}
-      <div className="relative mb-6 sm:mb-8 md:mb-10">
-        <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="flex items-center gap-3 sm:gap-4 w-full xl:w-auto">
-            <div className="relative">
-              <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-3 sm:p-4 rounded-xl shadow-xl shadow-indigo-500/30 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-                <Layers size={24} sm:size={28} className="text-white relative z-10" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-100/80 backdrop-blur-sm overflow-hidden">
+      {/* Header */}
+      <div className="p-4 sm:p-6 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/30">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 sm:p-3 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-xl shadow-xl shadow-blue-500/30 ring-2 ring-blue-500/10">
+              <Layers size={18} sm:size={20} className="text-white" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 bg-clip-text text-transparent">
-                SubCategories Management
-              </h2>
-              <p className="text-slate-500 text-xs sm:text-sm md:text-base mt-1">
-                {subCategories.length} {subCategories.length === 1 ? 'subcategory' : 'subcategories'} available
-              </p>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">SubCategories</h2>
+              <p className="text-xs sm:text-sm text-gray-500 font-medium">{filteredSubCategories.length} of {subCategories.length} subcategories</p>
             </div>
           </div>
-          <button
+          <button 
             onClick={() => handleOpenSubCategoryModal(null)}
-            className="w-full xl:w-auto bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 rounded-xl font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/50 transition-all flex items-center justify-center gap-2 hover:scale-105 relative overflow-hidden"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all duration-300 text-sm font-semibold shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transform hover:-translate-y-0.5"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
-            <Plus size={18} sm:size={20} className="relative z-10" />
-            <span className="text-sm sm:text-base relative z-10">Add SubCategory</span>
+            <Plus size={16} />
+            Add SubCategory
           </button>
         </div>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3 md:gap-4 mb-5 sm:mb-7 relative">
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-3 sm:p-3 md:p-4 shadow-lg hover:shadow-xl hover:shadow-indigo-500/20 transition-all hover:-translate-y-1 hover:border-indigo-300 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative flex items-center gap-2 sm:gap-3">
-              <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-2.5 sm:p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
-                <LayoutGrid size={16} sm:size={18} md:size={20} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 to-indigo-700 bg-clip-text text-transparent">{subCategories.length}</p>
-                <p className="text-xs sm:text-xs md:text-sm text-slate-500 font-medium">Total</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-3 sm:p-3 md:p-4 shadow-lg hover:shadow-xl hover:shadow-emerald-500/20 transition-all hover:-translate-y-1 hover:border-emerald-300 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-green-50/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative flex items-center gap-2 sm:gap-3">
-              <div className="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 p-2.5 sm:p-2.5 rounded-xl shadow-lg shadow-emerald-500/30">
-                <Eye size={16} sm:size={18} md:size={20} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 to-emerald-700 bg-clip-text text-transparent">{activeCount}</p>
-                <p className="text-xs sm:text-xs md:text-sm text-slate-500 font-medium">Active</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-3 sm:p-3 md:p-4 shadow-lg hover:shadow-xl hover:shadow-amber-500/20 transition-all hover:-translate-y-1 hover:border-amber-300 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-orange-50/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative flex items-center gap-2 sm:gap-3">
-              <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-500 p-2.5 sm:p-2.5 rounded-xl shadow-lg shadow-amber-500/30">
-                <Star size={16} sm:size={18} md:size={20} className="text-white" fill="currentColor" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 to-amber-700 bg-clip-text text-transparent">{featuredCount}</p>
-                <p className="text-xs sm:text-xs md:text-sm text-slate-500 font-medium">Featured</p>
-              </div>
-            </div>
-          </div>
-          <div className="hidden lg:flex bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-3 sm:p-3 md:p-4 shadow-lg hover:shadow-xl hover:shadow-slate-500/20 transition-all hover:-translate-y-1 hover:border-slate-300 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/50 to-gray-50/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative flex items-center gap-2 sm:gap-3">
-              <div className="bg-gradient-to-br from-slate-500 via-gray-500 to-zinc-500 p-2.5 sm:p-2.5 rounded-xl shadow-lg shadow-slate-500/30">
-                <Package size={16} sm:size={18} md:size={20} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-700 bg-clip-text text-transparent">{subCategories.reduce((sum, cat) => sum + (cat.productCount || 0), 0)}</p>
-                <p className="text-xs sm:text-xs md:text-sm text-slate-500 font-medium">Products</p>
-              </div>
-            </div>
-          </div>
+      {/* Filters */}
+      <div className="p-3 sm:p-5 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
+        {/* Search */}
+        <div className="relative mb-3 sm:mb-4">
+          <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} sm:size={18} />
+          <input
+            type="text"
+            placeholder="Search subcategories..."
+            value={subCategoryFilter.search}
+            onChange={(e) => setSubCategoryFilter({ ...subCategoryFilter, search: e.target.value })}
+            className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-2.5 sm:py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-sm shadow-sm hover:shadow-md"
+          />
+          {subCategoryFilter.search && (
+            <button 
+              onClick={() => setSubCategoryFilter({ ...subCategoryFilter, search: '' })}
+              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={16} sm:size={18} />
+            </button>
+          )}
         </div>
 
-        {/* Search and Filter Section */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 md:gap-4">
-          <div className="relative flex-1 group">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-300" size={18} sm:size={18} />
-            <input
-              type="text"
-              placeholder="Search subcategories by name..."
-              value={subCategoryFilter.search}
-              onChange={(e) => setSubCategoryFilter({ ...subCategoryFilter, search: e.target.value })}
-              className="relative w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-sm sm:text-sm md:text-base bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md"
-            />
+        {/* Selected Status Chips */}
+        {subCategoryFilter.status && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {subCategoryFilter.status.split(',').map(status => {
+              const option = statusOptions.find(opt => opt.value === status);
+              return option ? (
+                <span
+                  key={status}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm ${
+                    option.color === 'green' ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-700 ring-2 ring-green-500/30' :
+                    option.color === 'gray' ? 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 ring-2 ring-gray-500/30' :
+                    'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 ring-2 ring-amber-500/30'
+                  }`}
+                >
+                  {option.label}
+                  <button
+                    onClick={() => toggleStatus(status)}
+                    className="hover:opacity-80"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ) : null;
+            })}
           </div>
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        )}
+
+        {/* Selected Category Chips */}
+        {subCategoryFilter.categoryId && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {subCategoryFilter.categoryId.split(',').map(catId => {
+              const category = categories.find(c => c.id === catId);
+              return category ? (
+                <span
+                  key={catId}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 shadow-sm ring-2 ring-indigo-500/30"
+                >
+                  {category.displayName || category.name}
+                  <button
+                    onClick={() => toggleCategory(catId)}
+                    className="hover:opacity-80"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ) : null;
+            })}
+          </div>
+        )}
+
+        {/* Category and Status Dropdowns */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          {/* Category Multi-select Dropdown */}
+          <div className="flex-1 sm:flex-none relative">
             <select 
-              value={subCategoryFilter.categoryId}
-              onChange={(e) => setSubCategoryFilter({ ...subCategoryFilter, categoryId: e.target.value })}
-              className="relative w-full sm:w-auto px-4 sm:px-4 py-2.5 sm:py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-sm sm:text-sm md:text-base bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md cursor-pointer appearance-none"
+              value=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  toggleCategory(e.target.value);
+                  e.target.value = '';
+                }
+              }}
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-sm shadow-sm hover:shadow-md appearance-none cursor-pointer"
             >
-              <option value="">All Categories</option>
-              {categories.map(cat => (
+              <option value="">+ Add Category</option>
+              {categories.filter(cat => !subCategoryFilter.categoryId || !subCategoryFilter.categoryId.split(',').includes(cat.id)).map(cat => (
                 <option key={cat.id} value={cat.id}>{cat.displayName || cat.name}</option>
               ))}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          {/* Status Multi-select Dropdown */}
+          <div className="flex-1 sm:flex-none relative">
             <select 
-              value={subCategoryFilter.status}
-              onChange={(e) => setSubCategoryFilter({ ...subCategoryFilter, status: e.target.value })}
-              className="relative w-full sm:w-auto px-4 sm:px-4 py-2.5 sm:py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-sm sm:text-sm md:text-base bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md cursor-pointer appearance-none"
+              value=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  toggleStatus(e.target.value);
+                  e.target.value = '';
+                }
+              }}
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-sm shadow-sm hover:shadow-md appearance-none cursor-pointer"
             >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="featured">Featured</option>
+              <option value="">+ Add Status</option>
+              {statusOptions.filter(opt => !subCategoryFilter.status || !subCategoryFilter.status.split(',').includes(opt.value)).map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-300 text-sm font-medium shadow-sm hover:shadow-md"
+            >
+              <X size={16} />
+              Clear
+            </button>
+          )}
         </div>
       </div>
       
-      {/* SubCategories Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-2 md:gap-3 relative">
-        {subCategories
-          .filter(subCat => {
-            const matchesSearch = subCat.displayName?.toLowerCase().includes(subCategoryFilter.search.toLowerCase()) || 
-                                subCat.name?.toLowerCase().includes(subCategoryFilter.search.toLowerCase());
-            const matchesCategory = subCategoryFilter.categoryId === '' || subCat.categoryId === subCategoryFilter.categoryId;
-            const matchesStatus = subCategoryFilter.status === '' || 
-                                (subCategoryFilter.status === 'active' && subCat.isActive) ||
-                                (subCategoryFilter.status === 'inactive' && !subCat.isActive) ||
-                                (subCategoryFilter.status === 'featured' && subCat.isFeatured);
-            return matchesSearch && matchesCategory && matchesStatus;
-          })
-          .map((subCategory) => (
-          <div 
-            key={subCategory.id} 
-            className="group bg-white/90 backdrop-blur-sm rounded-xl border border-slate-200 shadow-lg hover:shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-400 transition-all duration-300 overflow-hidden hover:-translate-y-1 relative"
-          >
-            {/* Card shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none"></div>
-            
-            {/* SubCategory Image/Icon Header */}
-            <div className="relative h-36 sm:h-40 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center overflow-hidden">
-              {/* Animated pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%236366f1\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M0 0h40L0 40z\'/%3E%3C/g%3E%3C/svg%3E')]"></div>
-              </div>
-              {subCategory.image ? (
-                <img 
-                  src={subCategory.image} 
-                  alt={subCategory.displayName || subCategory.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 relative z-10"
-                />
-              ) : (
-                <span className="text-6xl sm:text-7xl text-indigo-400 group-hover:scale-110 transition-transform duration-300 relative z-10">📁</span>
-              )}
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              
-              {/* Status Badges */}
-              <div className="absolute top-2 right-2 flex flex-col gap-1.5 z-20">
-                {subCategory.isFeatured && (
-                  <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-white px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg shadow-amber-500/30 animate-pulse">
-                    <Star size={11} fill="currentColor" />
-                    Featured
-                  </div>
-                )}
-                <div className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg backdrop-blur-sm ${subCategory.isActive ? 'bg-emerald-500/90 text-white shadow-emerald-500/30' : 'bg-slate-600/90 text-white shadow-slate-500/30'}`}>
-                  {subCategory.isActive ? <Eye size={11} /> : <EyeOff size={11} />}
-                  {subCategory.isActive ? 'Active' : 'Inactive'}
-                </div>
-              </div>
-              {/* Display Order Badge */}
-              <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-bold text-slate-700 border border-slate-200 shadow-lg z-20">
-                #{subCategory.displayOrder || 0}
-              </div>
+      {/* SubCategories Table */}
+      <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <table className="w-full min-w-[500px] sm:min-w-full">
+          <thead className="bg-gradient-to-b from-slate-50 via-blue-50/40 to-indigo-50/30 border-b-2 border-gray-100">
+            <tr>
+              <th className="text-right py-1 sm:py-2.5 px-1 sm:px-2.5 font-bold text-gray-700 text-[10px] sm:text-xs uppercase tracking-wider min-w-[80px] sm:min-w-[120px] border-r border-gray-100/50">SubCategory</th>
+              <th className="text-right py-1 sm:py-2.5 px-1 sm:px-2.5 font-bold text-gray-700 text-[10px] sm:text-xs uppercase tracking-wider min-w-[80px] sm:min-w-[100px] border-r border-gray-100/50">Category</th>
+              <th className="text-right py-1 sm:py-2.5 px-1 sm:px-2.5 font-bold text-gray-700 text-[10px] sm:text-xs uppercase tracking-wider min-w-[100px] sm:min-w-[150px] border-r border-gray-100/50">Description</th>
+              <th className="text-right py-1 sm:py-2.5 px-1 sm:px-2.5 font-bold text-gray-700 text-[10px] sm:text-xs uppercase tracking-wider min-w-[70px] sm:min-w-[100px] border-r border-gray-100/50">Products</th>
+              <th className="text-right py-1 sm:py-2.5 px-1 sm:px-2.5 font-bold text-gray-700 text-[10px] sm:text-xs uppercase tracking-wider min-w-[70px] sm:min-w-[100px] border-r border-gray-100/50">Status</th>
+              <th className="text-right py-1 sm:py-2.5 px-1 sm:px-2.5 font-bold text-gray-700 text-[10px] sm:text-xs uppercase tracking-wider min-w-[80px] sm:min-w-[100px]">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100/60">
+            {filteredSubCategories.map(subCategory => {
+              const category = categories.find(c => c.id === subCategory.categoryId);
+              const categoryName = category?.displayName || category?.name || 'Unknown';
+              return (
+                <tr key={subCategory.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-300 group border-b border-gray-50 last:border-b-0">
+                  <td className="py-1 sm:py-2.5 px-1 sm:px-2.5 min-w-[80px] sm:min-w-[120px] border-r border-gray-100/50 text-right">
+                    <div className="flex items-center justify-end">
+                      <div className="min-w-0 flex-1 text-right">
+                        <p className="font-semibold text-gray-900 text-[11px] sm:text-sm truncate leading-tight">{subCategory.displayName || subCategory.name}</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 hidden sm:block truncate leading-tight">{subCategory.name}</p>
+                      </div>
+                      <div className="relative flex-shrink-0 ml-1 sm:ml-2">
+                        {subCategory.image ? (
+                          <img
+                            src={subCategory.image}
+                            alt={subCategory.displayName || subCategory.name}
+                            className="w-3.5 h-3.5 sm:w-6 sm:h-6 object-cover rounded-lg shadow-md ring-2 ring-gray-100 group-hover:ring-blue-400 group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="w-3.5 h-3.5 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg shadow-md ring-2 ring-gray-100 group-hover:ring-blue-400 group-hover:shadow-xl transition-all duration-300 flex items-center justify-center">
+                            <FolderOpen size={8} sm:size={12} className="text-blue-500" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-1 sm:py-2.5 px-1 sm:px-2.5 min-w-[80px] sm:min-w-[100px] border-r border-gray-100/50 text-right">
+                    <span className="inline-flex items-center px-1 sm:px-1.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-sm font-semibold bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 shadow-md">
+                      {categoryName}
+                    </span>
+                  </td>
+                  <td className="py-1 sm:py-2.5 px-1 sm:px-2.5 min-w-[100px] sm:min-w-[150px] border-r border-gray-100/50 text-right">
+                    <p className="text-[11px] sm:text-sm text-gray-600 truncate">{subCategory.description || 'No description'}</p>
+                  </td>
+                  <td className="py-1 sm:py-2.5 px-1 sm:px-2.5 min-w-[70px] sm:min-w-[100px] border-r border-gray-100/50 text-right">
+                    <div className="flex items-center gap-1 sm:gap-2 justify-end">
+                      <span className="text-[11px] sm:text-sm font-bold text-gray-700">{subCategory.productCount || 0}</span>
+                      <div className="bg-gradient-to-br from-blue-500 to-indigo-500 p-1 rounded-md">
+                        <Package size={10} sm:size={12} className="text-white" />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-1 sm:py-2.5 px-1 sm:px-2.5 min-w-[70px] sm:min-w-[100px] border-r border-gray-100/50 text-right">
+                    <div className="flex items-center gap-0.5 sm:gap-1.5 justify-end">
+                      {subCategory.isFeatured && (
+                        <span className="text-blue-500 text-[10px] sm:text-base" title="Featured">
+                          ★
+                        </span>
+                      )}
+                      <span className={`inline-flex items-center px-1 sm:px-1.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-semibold shadow-md ${
+                        subCategory.isActive 
+                          ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-700' 
+                          : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-600'
+                      }`}>
+                        {subCategory.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-1 sm:py-2.5 px-1 sm:px-2.5 min-w-[80px] sm:min-w-[100px] text-right">
+                    <div className="flex gap-0.5 sm:gap-1 justify-end">
+                      <button
+                        onClick={() => handleOpenSubCategoryModal(subCategory)}
+                        className="p-1 sm:p-2 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 hover:from-blue-500 hover:to-indigo-600 hover:text-white rounded-lg sm:rounded-xl transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-blue-500/30 ring-1 ring-blue-200 hover:ring-blue-500"
+                        title="Edit"
+                      >
+                        <Edit size={9} sm:size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSubCategory(subCategory)}
+                        className="p-1 sm:p-2 bg-gradient-to-br from-red-50 to-rose-50 text-red-600 hover:from-red-500 hover:to-rose-600 hover:text-white rounded-lg sm:rounded-xl transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-red-500/30 ring-1 ring-red-200 hover:ring-red-500"
+                        title="Delete"
+                      >
+                        <Trash2 size={9} sm:size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        
+        {filteredSubCategories.length === 0 && (
+          <div className="text-center py-12 sm:py-20">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-xl shadow-blue-500/10">
+              <FolderOpen size={32} sm:size={48} className="text-blue-500" />
             </div>
-
-            {/* SubCategory Details */}
-            <div className="p-4 sm:p-4 bg-gradient-to-b from-white to-slate-50/50">
-              <div className="mb-3">
-                <h3 className="font-bold text-slate-800 text-base sm:text-base mb-1.5 line-clamp-1 group-hover:text-indigo-600 transition-colors">
-                  {subCategory.displayName || subCategory.name}
-                </h3>
-                <p className="text-slate-500 text-xs sm:text-xs line-clamp-2 min-h-[2.5rem] leading-relaxed">
-                  {subCategory.description || 'No description available'}
-                </p>
-              </div>
-
-              {/* Category Info */}
-              <div className="flex items-center gap-1.5 mb-3 text-xs text-indigo-600 bg-indigo-50 rounded-lg p-2">
-                <FolderOpen size={12} />
-                <span className="font-medium">{categories.find(c => c.id === subCategory.categoryId)?.displayName || 'Unknown Category'}</span>
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center justify-between mb-4 text-xs sm:text-xs bg-gradient-to-r from-indigo-50/50 via-purple-50/50 to-pink-50/50 rounded-lg p-2.5 border border-indigo-100">
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <div className="bg-gradient-to-br from-indigo-500 to-purple-500 p-1 rounded-md">
-                    <Package size={11} className="text-white" />
-                  </div>
-                  <span className="font-semibold text-indigo-700">{subCategory.productCount || 0} products</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-600">
-                  <span className="text-slate-500">ID:</span>
-                  <span className="text-slate-600 font-mono text-xs bg-white px-1.5 rounded border border-slate-200">{subCategory.name}</span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => handleOpenSubCategoryModal(subCategory)}
-                  className="flex-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/50 hover:scale-105"
-                >
-                  <Edit2 size={13} />
-                  Edit
-                </button>
-                <button 
-                  onClick={() => handleDeleteSubCategory(subCategory)}
-                  className="flex-1 bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 hover:from-red-600 hover:via-rose-600 hover:to-pink-600 text-white py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/50 hover:scale-105"
-                >
-                  <Trash2 size={13} />
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-        {subCategories.length === 0 && (
-          <div className="col-span-full flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20 text-center relative">
-            {/* Animated background circles */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-indigo-300/30 to-purple-300/30 rounded-full blur-3xl animate-pulse"></div>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-purple-300/30 to-pink-300/30 rounded-full blur-2xl animate-pulse delay-100"></div>
-            </div>
-            
-            <div className="relative mb-6">
-              <div className="bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 p-6 sm:p-8 rounded-full shadow-2xl shadow-indigo-500/20 border border-indigo-200/50">
-                <FolderOpen size={48} sm:size={56} className="text-indigo-500" />
-              </div>
-            </div>
-            <h3 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 bg-clip-text text-transparent mb-2 relative">
-              No SubCategories Found
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
+              {hasActiveFilters ? 'No subcategories match your filters' : 'No subcategories found'}
             </h3>
-            <p className="text-slate-500 text-xs sm:text-sm md:text-base mb-5 sm:mb-6 max-w-md px-4 relative">
-              {subCategoryFilter.search || subCategoryFilter.categoryId || subCategoryFilter.status 
-                ? 'Try adjusting your search or filter criteria' 
-                : 'Get started by creating your first subcategory'}
+            <p className="text-sm text-gray-500 mb-4 sm:mb-6">
+              {hasActiveFilters ? 'Try adjusting your filters' : 'Add your first subcategory to get started'}
             </p>
-            <button
-              onClick={() => handleOpenSubCategoryModal(null)}
-              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/50 hover:scale-105 transition-all flex items-center gap-2 relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
-              <Plus size={18} sm:size={20} className="relative z-10" />
-              <span className="text-sm sm:text-base relative z-10">Add Your First SubCategory</span>
-            </button>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+              >
+                <X size={16} />
+                Clear filters
+              </button>
+            )}
           </div>
         )}
       </div>

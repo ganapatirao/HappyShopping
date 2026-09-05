@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShoppingBag, Heart, User, Settings, Package, LogOut, Truck, CreditCard, MapPin, Edit, Plus, X, Bell, Shield, Globe, Eye, Filter, ChevronDown, Calendar, DollarSign, Mail, Phone } from 'lucide-react';
+import { ShoppingBag, Heart, User, Settings, Package, LogOut, Truck, CreditCard, MapPin, Edit, Plus, X, Bell, Shield, Globe, Eye, Filter, ChevronDown, Calendar, DollarSign, Mail, Phone, Check, Trash2, AlertTriangle, Menu } from 'lucide-react';
 import Toast from '../shared/common/Toast';
 import { API_BASE_URL } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 
 const UserDashboard = () => {
-  const { user, logout, isAuthenticated, loading } = useAuth();
+  const { user, logout, isAuthenticated, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
@@ -18,8 +18,15 @@ const UserDashboard = () => {
   const [wishlist, setWishlist] = useState([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showPaymentDeleteConfirmModal, setShowPaymentDeleteConfirmModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
+  const [editingPaymentMethod, setEditingPaymentMethod] = useState(null);
+  const [deletingAddressId, setDeletingAddressId] = useState(null);
+  const [deletingPaymentId, setDeletingPaymentId] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [addressActionId, setAddressActionId] = useState(null);
+  const [paymentActionId, setPaymentActionId] = useState(null);
   const [addressForm, setAddressForm] = useState({
     fullName: '',
     phone: '',
@@ -123,7 +130,7 @@ const UserDashboard = () => {
             });
           }
         } catch (error) {
-          console.error('Error loading settings:', error);
+
         }
       };
       loadSettings();
@@ -136,15 +143,15 @@ const UserDashboard = () => {
             headers: { 'Content-Type': 'application/json' }
           });
           const data = await response.json();
-          console.log('Wishlist API response:', data);
+
           if (data.success) {
-            console.log('Setting wishlist:', data.wishlist);
+
             setWishlist(data.wishlist || []);
           } else {
-            console.error('Wishlist API error:', data.message);
+
           }
         } catch (error) {
-          console.error('Error loading wishlist:', error);
+
         }
       };
       loadWishlist();
@@ -216,7 +223,7 @@ const UserDashboard = () => {
         setOrders(normalizedOrders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+
     }
   };
 
@@ -462,7 +469,7 @@ const UserDashboard = () => {
   }, [orders, orderFilter, dateFilter]);
 
   const fetchWishlistProducts = async () => {
-    console.log('fetchWishlistProducts called, wishlist:', wishlist);
+
     if (wishlist.length === 0) {
       setWishlistProducts([]);
       return;
@@ -473,11 +480,11 @@ const UserDashboard = () => {
       const productPromises = wishlist.map(productId => 
         fetch(`${API_BASE_URL}/product/${productId}`)
           .then(res => {
-            console.log(`Product ${productId} response:`, res.status);
+
             return res.json();
           })
           .then(data => {
-            console.log('Product data for', productId, ':', data);
+
             // Handle API response structure: { success: true, product: {...} }
             const product = data.product || data;
             // Normalize ID property from backend (Id) to frontend (id)
@@ -487,17 +494,17 @@ const UserDashboard = () => {
             return product;
           })
           .catch(err => {
-            console.error(`Error fetching product ${productId}:`, err);
+
             return null;
           })
       );
       const products = await Promise.all(productPromises);
-      console.log('Fetched products:', products);
+
       const validProducts = products.filter(p => p !== null);
-      console.log('Setting wishlistProducts:', validProducts);
+
       setWishlistProducts(validProducts);
     } catch (error) {
-      console.error('Error fetching wishlist products:', error);
+
     } finally {
       setLoadingWishlist(false);
     }
@@ -510,7 +517,17 @@ const UserDashboard = () => {
   const handleOpenAddressModal = (address = null) => {
     if (address) {
       setEditingAddress(address);
-      setAddressForm(address);
+      setAddressForm({
+        fullName: address.fullName || address.FullName || '',
+        phone: address.phone || address.phoneNumber || address.PhoneNumber || '',
+        addressLine1: address.addressLine1 || address.AddressLine1 || '',
+        addressLine2: address.addressLine2 || address.AddressLine2 || '',
+        city: address.city || address.City || '',
+        state: address.state || address.State || '',
+        zipCode: address.zipCode || address.zip || address.ZipCode || address.Zip || address.pinCode || address.PinCode || address.postalCode || address.PostalCode || '',
+        country: address.country || address.Country || '',
+        isDefault: address.isDefault || address.IsDefault || false
+      });
     } else {
       setEditingAddress(null);
       setAddressForm({
@@ -552,8 +569,8 @@ const UserDashboard = () => {
       return;
     }
 
-    console.log('Saving address:', addressForm);
-    console.log('User ID:', user.id);
+
+
 
     try {
       const addressData = {
@@ -570,35 +587,38 @@ const UserDashboard = () => {
       };
 
       if (editingAddress) {
+        setAddressActionId(editingAddress.id);
         const url = `${API_BASE_URL}/user/${user.id}/addresses/${editingAddress.id}`;
-        console.log('PUT URL:', url);
+
         const response = await fetch(url, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...addressData, id: editingAddress.id })
         });
-        console.log('PUT Response status:', response.status);
+
         const result = await response.json();
-        console.log('PUT Response:', result);
+
         if (result.success) {
           await loadAddresses();
           handleCloseAddressModal();
           setAddressErrors({});
           showToast('Address updated successfully!');
+          setTimeout(() => setAddressActionId(null), 2000);
         } else {
+          setAddressActionId(null);
           showToast('Failed to update address', 'error');
         }
       } else {
         const url = `${API_BASE_URL}/user/${user.id}/addresses`;
-        console.log('POST URL:', url);
+
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(addressData)
         });
-        console.log('POST Response status:', response.status);
+
         const result = await response.json();
-        console.log('POST Response:', result);
+
         if (result.success) {
           await loadAddresses();
           handleCloseAddressModal();
@@ -609,29 +629,43 @@ const UserDashboard = () => {
         }
       }
     } catch (error) {
-      console.error('Error saving address:', error);
+
       showToast('Error saving address', 'error');
     }
   };
 
   const handleDeleteAddress = async (id) => {
-    if (!confirm('Are you sure you want to delete this address?')) {
-      return;
-    }
+    setDeletingAddressId(id);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteAddress = async () => {
+    if (!deletingAddressId) return;
+    setAddressActionId(deletingAddressId);
+    setShowDeleteConfirmModal(false);
     try {
-      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}/addresses/${deletingAddressId}`, {
         method: 'DELETE'
       });
       const result = await response.json();
       if (result.success) {
         await loadAddresses();
         showToast('Address deleted successfully!');
+        setTimeout(() => setAddressActionId(null), 2000);
       } else {
+        setAddressActionId(null);
         showToast('Failed to delete address', 'error');
       }
     } catch (error) {
+      setAddressActionId(null);
       showToast('Error deleting address', 'error');
     }
+    setDeletingAddressId(null);
+  };
+
+  const cancelDeleteAddress = () => {
+    setShowDeleteConfirmModal(false);
+    setDeletingAddressId(null);
   };
 
   const handleSetDefaultAddress = async (addressId) => {
@@ -677,7 +711,7 @@ const UserDashboard = () => {
         return !errors[field];
       }
     } catch (error) {
-      console.error('Server validation error:', error);
+
       return false;
     }
   };
@@ -700,7 +734,7 @@ const UserDashboard = () => {
         return false;
       }
     } catch (error) {
-      console.error('Server validation error:', error);
+
       return false;
     }
   };
@@ -731,7 +765,7 @@ const UserDashboard = () => {
         return !errors[field];
       }
     } catch (error) {
-      console.error('Server validation error:', error);
+
       return false;
     }
   };
@@ -754,7 +788,7 @@ const UserDashboard = () => {
         return false;
       }
     } catch (error) {
-      console.error('Server validation error:', error);
+
       return false;
     }
   };
@@ -829,12 +863,37 @@ const UserDashboard = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleOpenPaymentModal = () => {
+  const handleOpenPaymentModal = (paymentMethod = null) => {
+    if (paymentMethod) {
+      // Editing existing payment method
+      setEditingPaymentMethod(paymentMethod);
+      setPaymentForm({
+        cardNumber: paymentMethod.cardNumber || '',
+        cardHolder: paymentMethod.cardHolder || '',
+        expiryMonth: paymentMethod.expiryMonth || '',
+        expiryYear: paymentMethod.expiryYear || '',
+        cvv: '',
+        isDefault: paymentMethod.isDefault || false
+      });
+    } else {
+      // Adding new payment method
+      setEditingPaymentMethod(null);
+      setPaymentForm({
+        cardNumber: '',
+        cardHolder: '',
+        expiryMonth: '',
+        expiryYear: '',
+        cvv: '',
+        isDefault: false
+      });
+    }
+    setPaymentErrors({});
     setShowPaymentModal(true);
   };
 
   const handleClosePaymentModal = () => {
     setShowPaymentModal(false);
+    setEditingPaymentMethod(null);
     setPaymentForm({
       cardNumber: '',
       cardHolder: '',
@@ -857,25 +916,54 @@ const UserDashboard = () => {
   };
 
   const handleDeletePayment = (paymentId) => {
-    if (confirm('Are you sure you want to delete this payment method?')) {
-      const updatedMethods = paymentMethods.filter(m => m.id !== paymentId);
-      setPaymentMethods(updatedMethods);
-      localStorage.setItem(`savedPaymentMethods_${user.id}`, JSON.stringify(updatedMethods));
-      showToast('Payment method deleted successfully!');
-    }
+    setDeletingPaymentId(paymentId);
+    setShowPaymentDeleteConfirmModal(true);
+  };
+
+  const confirmDeletePayment = () => {
+    if (!deletingPaymentId) return;
+    setPaymentActionId(deletingPaymentId);
+    setShowPaymentDeleteConfirmModal(false);
+    const updatedMethods = paymentMethods.filter(m => m.id !== deletingPaymentId);
+    setPaymentMethods(updatedMethods);
+    localStorage.setItem(`savedPaymentMethods_${user.id}`, JSON.stringify(updatedMethods));
+    showToast('Payment method deleted successfully!');
+    setTimeout(() => setPaymentActionId(null), 2000);
+    setDeletingPaymentId(null);
+  };
+
+  const cancelDeletePayment = () => {
+    setShowPaymentDeleteConfirmModal(false);
+    setDeletingPaymentId(null);
   };
 
   const handleSavePayment = async () => {
     if (!await validatePaymentForm()) {
       return;
     }
-    
-    const updatedPaymentMethods = [...paymentMethods, { ...paymentForm, id: Date.now().toString(), last4: paymentForm.cardNumber.slice(-4) }];
-    setPaymentMethods(updatedPaymentMethods);
-    localStorage.setItem(`paymentMethods_${user.id}`, JSON.stringify(updatedPaymentMethods));
-    handleClosePaymentModal();
-    setPaymentErrors({});
-    showToast('Payment method added successfully!');
+
+    if (editingPaymentMethod) {
+      setPaymentActionId(editingPaymentMethod.id);
+      const updatedMethods = paymentMethods.map(m =>
+        m.id === editingPaymentMethod.id
+          ? { ...paymentForm, id: editingPaymentMethod.id, last4: paymentForm.cardNumber.slice(-4) }
+          : m
+      );
+      setPaymentMethods(updatedMethods);
+      localStorage.setItem(`savedPaymentMethods_${user.id}`, JSON.stringify(updatedMethods));
+      handleClosePaymentModal();
+      setPaymentErrors({});
+      setEditingPaymentMethod(null);
+      showToast('Payment method updated successfully!');
+      setTimeout(() => setPaymentActionId(null), 2000);
+    } else {
+      const updatedPaymentMethods = [...paymentMethods, { ...paymentForm, id: Date.now().toString(), last4: paymentForm.cardNumber.slice(-4) }];
+      setPaymentMethods(updatedPaymentMethods);
+      localStorage.setItem(`savedPaymentMethods_${user.id}`, JSON.stringify(updatedPaymentMethods));
+      handleClosePaymentModal();
+      setPaymentErrors({});
+      showToast('Payment method added successfully!');
+    }
   };
 
   const handleSaveSettings = async () => {
@@ -903,7 +991,7 @@ const UserDashboard = () => {
         showToast('Failed to update settings', 'error');
       }
     } catch (error) {
-      console.error('Error updating settings:', error);
+
       showToast('Failed to update settings', 'error');
     }
   };
@@ -938,7 +1026,7 @@ const UserDashboard = () => {
         showToast(data.message || 'Failed to change password', 'error');
       }
     } catch (error) {
-      console.error('Error changing password:', error);
+
       showToast('Failed to change password', 'error');
     }
   };
@@ -967,7 +1055,7 @@ const UserDashboard = () => {
         showToast('Failed to save preferences', 'error');
       }
     } catch (error) {
-      console.error('Error saving preferences:', error);
+
       showToast('Failed to save preferences', 'error');
     }
   };
@@ -988,7 +1076,7 @@ const UserDashboard = () => {
         showToast('Failed to add to wishlist', 'error');
       }
     } catch (error) {
-      console.error('Error adding to wishlist:', error);
+
       showToast('Failed to add to wishlist', 'error');
     }
   };
@@ -1006,7 +1094,7 @@ const UserDashboard = () => {
         showToast('Removed from wishlist!');
       }
     } catch (error) {
-      console.error('Error removing from wishlist:', error);
+
       showToast('Failed to remove from wishlist', 'error');
     }
   };
@@ -1021,7 +1109,7 @@ const UserDashboard = () => {
         showToast('Failed to add to cart', 'error');
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
+
       showToast('Failed to add to cart', 'error');
     }
   };
@@ -1044,7 +1132,7 @@ const UserDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-4 md:py-6 sticky top-0 z-40">
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 sm:py-4 md:py-6 sticky top-[4rem] z-40">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -1052,7 +1140,7 @@ const UserDashboard = () => {
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-2 rounded-lg hover:bg-white/20 transition-colors"
               >
-                {mobileMenuOpen ? <X size={20} /> : <User size={20} />}
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <div>
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold">My Account</h1>
@@ -1090,10 +1178,10 @@ const UserDashboard = () => {
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Mobile Sidebar */}
           {mobileMenuOpen && (
-            <div className="lg:hidden fixed inset-0 z-50 pt-16">
+            <div className="lg:hidden fixed inset-0 z-50">
               <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)}></div>
-              <div className="relative bg-white rounded-xl shadow-lg p-4 m-2 max-w-sm">
-                <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+              <div className="relative bg-white rounded-xl shadow-lg p-4 m-2 max-w-sm max-h-[calc(100vh-2rem)] overflow-y-auto">
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b sticky top-0 bg-white z-10">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
                     {user?.fullName?.charAt(0).toUpperCase() || 'U'}
                   </div>
@@ -1104,7 +1192,7 @@ const UserDashboard = () => {
                 </div>
                 <nav className="space-y-2">
                   {[
-                    { id: 'overview', label: 'Overview', icon: User },
+                    { id: 'overview', label: 'Overview', icon: Menu },
                     { id: 'orders', label: 'My Orders', icon: ShoppingBag },
                     { id: 'wishlist', label: 'Wishlist', icon: Heart },
                     { id: 'addresses', label: 'Addresses', icon: Truck },
@@ -1130,6 +1218,18 @@ const UserDashboard = () => {
                   <div className="pt-4 border-t mt-4">
                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Quick Navigation</h3>
                     <div className="space-y-2">
+                      {isAdmin && (
+                        <button
+                          onClick={() => {
+                            navigate('/admin');
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-purple-50 text-purple-600"
+                        >
+                          <Settings size={18} />
+                          <span className="font-medium text-sm">Admin Dashboard</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           navigate('/shopping');
@@ -1169,9 +1269,9 @@ const UserDashboard = () => {
 
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 sticky top-24">
-              {/* User Info */}
-              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 sticky top-[8rem] max-h-[calc(100vh-10rem)] overflow-y-auto">
+              {/* User Info - Sticky at top */}
+              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b sticky top-0 bg-white z-10">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
                   {user?.fullName?.charAt(0).toUpperCase() || 'U'}
                 </div>
@@ -1189,7 +1289,7 @@ const UserDashboard = () => {
               {/* Navigation */}
               <nav className="space-y-2">
                 {[
-                  { id: 'overview', label: 'Overview', icon: User },
+                  { id: 'overview', label: 'Overview', icon: Menu },
                   { id: 'orders', label: 'My Orders', icon: ShoppingBag },
                   { id: 'wishlist', label: 'Wishlist', icon: Heart },
                   { id: 'addresses', label: 'Addresses', icon: Truck },
@@ -1245,128 +1345,111 @@ const UserDashboard = () => {
               <div className="space-y-4 sm:space-y-6">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 md:p-6 border border-blue-200 hover:shadow-lg transition-shadow">
+                  <button
+                    onClick={() => setActiveTab('orders')}
+                    className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-3 sm:p-4 md:p-6 text-white hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                  >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-blue-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
+                      <div className="bg-white/20 p-2 sm:p-2.5 md:p-3 rounded-lg backdrop-blur-sm">
                         <ShoppingBag size={14} sm:size={16} md:size={20} className="text-white" />
                       </div>
                       <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Total Orders</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{dashboardStats.totalOrders}</p>
+                        <p className="text-xs sm:text-sm md:text-base text-blue-100 font-medium">Total Orders</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold">{dashboardStats.totalOrders}</p>
                       </div>
                     </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 md:p-6 border border-green-200 hover:shadow-lg transition-shadow">
+                  </button>
+                  <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-green-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
-                        <Package size={14} sm:size={16} md:size={20} className="text-white" />
+                      <div className="bg-white/20 p-2 sm:p-2.5 md:p-3 rounded-lg backdrop-blur-sm">
+                        <span className="text-lg sm:text-xl md:text-2xl font-bold">₹</span>
                       </div>
                       <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Total Spent</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">₹{dashboardStats.totalSpent.toLocaleString()}</p>
+                        <p className="text-xs sm:text-sm md:text-base text-green-100 font-medium">Total Spent</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold">₹{dashboardStats.totalSpent.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 sm:p-4 md:p-6 border border-red-200 hover:shadow-lg transition-shadow">
+                  <button
+                    onClick={() => setActiveTab('wishlist')}
+                    className="bg-gradient-to-br from-red-500 to-pink-600 rounded-xl p-3 sm:p-4 md:p-6 text-white hover:from-red-600 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                  >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-red-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
+                      <div className="bg-white/20 p-2 sm:p-2.5 md:p-3 rounded-lg backdrop-blur-sm">
                         <Heart size={14} sm:size={16} md:size={20} className="text-white" />
                       </div>
                       <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Wishlist</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{wishlist.length}</p>
+                        <p className="text-xs sm:text-sm md:text-base text-red-100 font-medium">Wishlist</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold">{wishlist.length}</p>
                       </div>
                     </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-3 sm:p-4 md:p-6 border border-yellow-200 hover:shadow-lg transition-shadow">
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-3 sm:p-4 md:p-6 text-white hover:from-amber-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                  >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-yellow-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
-                        <User size={14} sm:size={16} md:size={20} className="text-white" />
+                      <div className="bg-white/20 p-2 sm:p-2.5 md:p-3 rounded-lg backdrop-blur-sm">
+                        <Menu size={14} sm:size={16} md:size={20} className="text-white" />
                       </div>
                       <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Membership</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{dashboardStats.membershipStatus}</p>
+                        <p className="text-xs sm:text-sm md:text-base text-amber-100 font-medium">Membership</p>
+                        <p className="text-base sm:text-lg md:text-2xl font-bold">{dashboardStats.membershipStatus}</p>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 </div>
 
-                {/* Additional Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 sm:p-4 md:p-6 border border-purple-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-purple-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
-                        <Package size={14} sm:size={16} md:size={20} className="text-white" />
+                {/* Recent Orders */}
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-4 sm:p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-purple-500 p-2 rounded-lg">
+                        <Package size={18} className="text-white" />
                       </div>
-                      <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Items Purchased</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{dashboardStats.totalItemsPurchased}</p>
-                      </div>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-800">Recent Orders</h2>
                     </div>
+                    <button
+                      onClick={() => setActiveTab('orders')}
+                      className="text-purple-600 text-sm font-medium hover:text-purple-700"
+                    >
+                      View All
+                    </button>
                   </div>
-                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl p-3 sm:p-4 md:p-6 border border-cyan-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-cyan-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
-                        <ShoppingBag size={14} sm:size={16} md:size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Avg Order Value</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">₹{Math.round(dashboardStats.averageOrderValue).toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 sm:p-4 md:p-6 border border-orange-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-orange-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
-                        <Truck size={14} sm:size={16} md:size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Pending Orders</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{dashboardStats.pendingOrders}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 sm:p-4 md:p-6 border border-emerald-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="bg-emerald-600 p-1.5 sm:p-2 md:p-3 rounded-lg shadow-md">
-                        <Shield size={14} sm:size={16} md:size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Delivered Orders</p>
-                        <p className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">{dashboardStats.deliveredOrders}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
-                    <Bell size={20} className="text-purple-600" />
-                    Recent Activity
-                  </h2>
-                  {recentActivity.length === 0 ? (
+                  {orders.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                      <p className="text-sm sm:text-base">No recent activity</p>
+                      <p className="text-sm sm:text-base">No orders yet</p>
                     </div>
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
-                      {recentActivity.map((activity, index) => (
-                        <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg gap-2 hover:from-gray-100 hover:to-gray-200 transition-colors">
-                          <div>
-                            <p className="font-semibold text-gray-800 text-sm sm:text-base">{activity.action}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">{activity.date}</p>
+                      {orders.slice(0, 3).map((order) => (
+                        <div
+                          key={order.id}
+                          onClick={() => handleOpenOrderDetails(order)}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-white rounded-lg gap-2 cursor-pointer hover:shadow-md transition-all border border-gray-200"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-purple-100 p-2 rounded-lg">
+                              <Package size={16} className="text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-800 text-sm sm:text-base">Order #{order.id?.substring(0, 8).toUpperCase()}</p>
+                              <p className="text-xs sm:text-sm text-gray-600">{new Date(order.orderDate).toLocaleDateString()}</p>
+                            </div>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold w-fit shadow-sm ${
-                            activity.status === 'Processing' || activity.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' :
-                            activity.status === 'Delivered' ? 'bg-green-100 text-green-700 border border-green-300' :
-                            activity.status === 'Cancelled' ? 'bg-red-100 text-red-700 border border-red-300' :
-                            activity.status === 'Confirmed' ? 'bg-blue-100 text-blue-700 border border-blue-300' :
-                            activity.status === 'Shipped' ? 'bg-purple-100 text-purple-700 border border-purple-300' :
-                            'bg-gray-100 text-gray-700 border border-gray-300'
-                          }`}>
-                            {activity.status}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <p className="font-bold text-gray-800 text-sm sm:text-base">₹{order.finalAmount.toLocaleString()}</p>
+                            <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border ${
+                              order.status === 'Pending' || order.status === 'Processing' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
+                              order.status === 'Confirmed' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                              order.status === 'Shipped' ? 'bg-purple-100 text-purple-700 border-purple-300' :
+                              order.status === 'Delivered' ? 'bg-green-100 text-green-700 border-green-300' :
+                              order.status === 'Cancelled' ? 'bg-red-100 text-red-700 border-red-300' :
+                              'bg-gray-100 text-gray-700 border-gray-300'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1376,17 +1459,19 @@ const UserDashboard = () => {
             )}
 
             {activeTab === 'orders' && (
-              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg p-3 sm:p-6">
                 {/* Header with Filters */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                <div className="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-6">
                   <h2 className="text-lg sm:text-xl font-bold text-gray-800">My Orders</h2>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     <div className="flex items-center gap-2">
-                      <Filter size={16} className="text-gray-500" />
+                      <div className="bg-purple-100 p-1.5 rounded-lg flex-shrink-0">
+                        <Filter size={14} className="text-purple-600" />
+                      </div>
                       <select
                         value={orderFilter}
                         onChange={(e) => setOrderFilter(e.target.value)}
-                        className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm bg-white cursor-pointer"
+                        className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm bg-white cursor-pointer"
                       >
                         <option value="all">All Orders ({orders.length})</option>
                         <option value="pending">Pending ({orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length})</option>
@@ -1397,11 +1482,13 @@ const UserDashboard = () => {
                       </select>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar size={16} className="text-gray-500" />
+                      <div className="bg-purple-100 p-1.5 rounded-lg flex-shrink-0">
+                        <Calendar size={14} className="text-purple-600" />
+                      </div>
                       <select
                         value={dateFilter}
                         onChange={(e) => setDateFilter(e.target.value)}
-                        className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm bg-white cursor-pointer"
+                        className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm bg-white cursor-pointer"
                       >
                         {dateFilterOptions.map((option) => (
                           <option key={option.id} value={option.id}>{option.label}</option>
@@ -1409,73 +1496,6 @@ const UserDashboard = () => {
                       </select>
                     </div>
                   </div>
-                </div>
-
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-600 p-2 rounded-lg shadow-md">
-                        <ShoppingBag size={18} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Total Orders</p>
-                        <p className="text-lg font-bold text-gray-800">{filteredOrders.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-green-600 p-2 rounded-lg shadow-md">
-                        <DollarSign size={18} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Total Spent</p>
-                        <p className="text-lg font-bold text-gray-800">₹{calculateFilteredSpending().toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-purple-600 p-2 rounded-lg shadow-md">
-                        <Package size={18} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Total Items</p>
-                        <p className="text-lg font-bold text-gray-800">
-                          {filteredOrders.reduce((sum, order) => sum + (order.items?.reduce((itemSum, item) => itemSum + (item.quantity || 0), 0) || 0), 0)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 border border-pink-200 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-pink-600 p-2 rounded-lg shadow-md">
-                        <ShoppingBag size={18} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Avg Order Value</p>
-                        <p className="text-lg font-bold text-gray-800">₹{filteredOrders.length > 0 ? Math.round(calculateFilteredSpending() / filteredOrders.length).toLocaleString() : 0}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-gray-200 overflow-x-auto">
-                  {orderFilters.map((filter) => (
-                    <button
-                      key={filter.id}
-                      onClick={() => setOrderFilter(filter.id)}
-                      className={`px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                        orderFilter === filter.id
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {filter.label} ({filter.count})
-                    </button>
-                  ))}
                 </div>
 
                 {/* Orders List */}
@@ -1492,24 +1512,21 @@ const UserDashboard = () => {
                     <p className="text-sm sm:text-base">No orders found for this filter</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-2 sm:space-y-3">
                     {filteredOrders.map((order) => (
-                      <div key={order.id} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-xl transition-all hover:border-purple-300">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-4 border-b border-gray-200">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-purple-100 p-2 rounded-lg">
-                              <ShoppingBag size={16} className="text-purple-600" />
+                      <div key={order.id} className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded flex items-center justify-center flex-shrink-0">
+                              <ShoppingBag size={12} className="text-white" />
                             </div>
                             <div>
-                              <p className="font-bold text-gray-800 text-sm sm:text-base">Order #{order.id?.substring(0, 8).toUpperCase()}</p>
-                              <div className="flex items-center gap-2 text-xs text-gray-600">
-                                <Calendar size={12} />
-                                <span>{new Date(order.orderDate).toLocaleDateString()}</span>
-                              </div>
+                              <p className="font-semibold text-gray-800 text-xs">#{order.id?.substring(0, 8).toUpperCase()}</p>
+                              <p className="text-xs text-gray-500">{new Date(order.orderDate).toLocaleDateString()}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold shadow-sm border ${
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
                               order.status === 'Pending' || order.status === 'Processing' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
                               order.status === 'Confirmed' ? 'bg-blue-100 text-blue-700 border-blue-300' :
                               order.status === 'Shipped' ? 'bg-purple-100 text-purple-700 border-purple-300' :
@@ -1519,52 +1536,42 @@ const UserDashboard = () => {
                             }`}>
                               {order.status}
                             </span>
-                            <button
-                              onClick={() => handleOpenOrderDetails(order)}
-                              className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-md"
-                              title="View Details"
-                            >
-                              <Eye size={14} sm:size={16} />
-                            </button>
                           </div>
                         </div>
 
-                        <div className="space-y-3 mb-4">
-                          {order.items?.slice(0, 2).map((item, index) => (
-                            <div key={index} className="flex items-center gap-3 text-sm bg-white p-3 rounded-lg border border-gray-100">
-                              <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+                        <div className="mb-2">
+                          {order.items?.slice(0, 1).map((item, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded overflow-hidden flex-shrink-0">
                                 {item.imageUrl ? (
                                   <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <ShoppingBag size={20} className="text-gray-400" />
+                                    <ShoppingBag size={12} className="text-gray-400" />
                                   </div>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-gray-800 text-xs sm:text-sm line-clamp-1">{item.productName}</p>
-                                <p className="text-xs text-gray-600">Qty: {item.quantity} | {item.color} {item.size && `| ${item.size}`}</p>
+                                <p className="font-medium text-gray-800 text-xs truncate">{item.productName}</p>
+                                <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                               </div>
-                              <p className="font-bold text-purple-600 text-sm sm:text-base">₹{(item.price * item.quantity).toLocaleString()}</p>
+                              <p className="font-semibold text-gray-700 text-xs">₹{(item.price * item.quantity).toLocaleString()}</p>
                             </div>
                           ))}
-                          {order.items?.length > 2 && (
-                            <p className="text-xs text-gray-600 text-center">+{order.items.length - 2} more items</p>
+                          {order.items?.length > 1 && (
+                            <p className="text-xs text-gray-500">+{order.items.length - 1} more items</p>
                           )}
                         </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-gray-200">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <DollarSign size={14} />
-                            <span>Total</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="font-bold text-lg sm:text-xl text-gray-900">₹{order.finalAmount?.toLocaleString() || 0}</span>
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                          <span className="text-xs text-gray-600">Total</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-900 text-sm">₹{order.finalAmount?.toLocaleString() || 0}</span>
                             <button
                               onClick={() => handleOpenOrderDetails(order)}
-                              className="text-purple-600 hover:text-purple-800 text-xs sm:text-sm font-semibold"
+                              className="text-purple-600 hover:text-purple-800 text-xs font-medium"
                             >
-                              View Details →
+                              View
                             </button>
                           </div>
                         </div>
@@ -1601,39 +1608,41 @@ const UserDashboard = () => {
                     <p className="text-sm sm:text-base">No products found in wishlist</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {wishlistProducts.map((product) => (
-                      <div key={product.id} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-xl transition-all hover:border-purple-300">
-                        <div className="relative mb-3">
-                          <div className="w-full h-40 bg-gray-100 rounded-lg overflow-hidden">
+                      <div key={product.id} className="bg-gradient-to-br from-pink-50 to-purple-50 border border-purple-200 rounded-xl p-3 sm:p-4 hover:shadow-lg transition-all">
+                        <div className="relative mb-2 sm:mb-3">
+                          <div className="w-full h-32 sm:h-40 bg-white rounded-lg overflow-hidden">
                             {product.imageUrl ? (
-                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <ShoppingBag size={32} className="text-gray-400" />
+                                <div className="bg-pink-100 p-2 sm:p-3 rounded-full">
+                                  <ShoppingBag size={24} sm:size={32} className="text-pink-600" />
+                                </div>
                               </div>
                             )}
                           </div>
                           <button
                             onClick={() => removeFromWishlist(product.id)}
-                            className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md transition-colors"
+                            className="absolute top-2 right-2 p-1.5 sm:p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md transition-colors"
                           >
-                            <X size={14} />
+                            <X size={12} sm:size={14} />
                           </button>
                         </div>
-                        <h3 className="font-bold text-gray-800 text-sm sm:text-base line-clamp-2 mb-2">{product.name}</h3>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-lg sm:text-xl font-bold text-purple-600">₹{product.price?.toLocaleString()}</span>
+                        <h3 className="font-bold text-gray-800 text-xs sm:text-sm line-clamp-2 mb-1 sm:mb-2">{product.name}</h3>
+                        <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                          <span className="text-base sm:text-lg font-bold text-purple-600">₹{product.price?.toLocaleString()}</span>
                           {product.originalPrice && product.originalPrice > product.price && (
-                            <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                            <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
                           )}
                         </div>
                         {product.discountPercentage > 0 && (
-                          <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-semibold">
+                          <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">
                             {product.discountPercentage}% OFF
                           </span>
                         )}
-                        <div className="flex gap-2 mt-3">
+                        <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-3">
                           <a href={`/product/${product.id}`} className="flex-1 text-center px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-xs sm:text-sm font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md">
                             View Details
                           </a>
@@ -1653,12 +1662,11 @@ const UserDashboard = () => {
 
             {activeTab === 'addresses' && (
               <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div>
                     <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Saved Addresses</h2>
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage your delivery addresses</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleOpenAddressModal()}
                     className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1 w-full sm:w-auto justify-center hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
                   >
@@ -1667,59 +1675,13 @@ const UserDashboard = () => {
                   </button>
                 </div>
 
-                {/* Address Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-blue-600 p-2 rounded-lg shadow-md">
-                        <MapPin size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Total</p>
-                        <p className="text-lg font-bold text-gray-800">{addresses.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-green-600 p-2 rounded-lg shadow-md">
-                        <MapPin size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Default</p>
-                        <p className="text-lg font-bold text-gray-800">{addresses.filter(a => a.isDefault).length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-purple-600 p-2 rounded-lg shadow-md">
-                        <Globe size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Countries</p>
-                        <p className="text-lg font-bold text-gray-800">{[...new Set(addresses.map(a => a.country))].length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-pink-600 p-2 rounded-lg shadow-md">
-                        <Package size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Cities</p>
-                        <p className="text-lg font-bold text-gray-800">{[...new Set(addresses.map(a => a.city))].length}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {addresses.length === 0 ? (
                   <div className="text-center py-8 sm:py-12 text-gray-500">
-                    <MapPin size={40} className="mx-auto mb-4 text-gray-300" />
+                    <div className="bg-blue-100 p-4 rounded-full inline-block mb-4">
+                      <MapPin size={40} className="text-blue-600" />
+                    </div>
                     <p className="text-sm sm:text-base">No saved addresses</p>
-                    <button 
+                    <button
                       onClick={() => handleOpenAddressModal()}
                       className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-sm hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
                     >
@@ -1727,59 +1689,59 @@ const UserDashboard = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {addresses.map((address) => (
-                      <div key={address.id} className={`bg-gradient-to-br from-gray-50 to-white rounded-xl p-3 sm:p-4 hover:shadow-xl transition-all border-2 ${
-                        address.isDefault ? 'border-purple-300 shadow-md' : 'border-gray-200 hover:border-purple-300'
+                      <div key={address.id} className={`bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-3 hover:shadow-lg transition-all border-2 relative ${
+                        address.isDefault ? 'border-blue-300 shadow-md' : 'border-blue-200 hover:border-blue-300'
                       }`}>
-                        <div className="flex justify-between items-start mb-3">
+                        {addressActionId === address.id && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white p-1.5 rounded-full shadow-md animate-in fade-in zoom-in">
+                            <Check size={14} />
+                          </div>
+                        )}
+                        <div className="flex justify-between items-start mb-2 pr-8">
                           <div className="flex items-center gap-2">
-                            <div className={`p-2 rounded-lg ${address.isDefault ? 'bg-purple-600' : 'bg-purple-100'}`}>
-                              <MapPin size={14} sm:size={16} className={address.isDefault ? 'text-white' : 'text-purple-600'} />
+                            <div className={`p-1.5 rounded-lg ${address.isDefault ? 'bg-blue-600' : 'bg-blue-100'}`}>
+                              <MapPin size={14} className={address.isDefault ? 'text-white' : 'text-blue-600'} />
                             </div>
                             {address.isDefault && (
-                              <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm">Default</span>
+                              <span className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold shadow-sm">Default</span>
                             )}
                           </div>
-                          <div className="flex gap-1 sm:gap-2">
-                            <button 
+                          <div className="flex gap-1">
+                            <button
                               onClick={() => handleOpenAddressModal(address)}
-                              className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-1.5 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Edit"
                             >
-                              <Edit size={14} sm:size={16} className="text-blue-600" />
+                              <Edit size={14} className="text-blue-600" />
                             </button>
                             {!address.isDefault && (
-                              <button 
+                              <button
                                 onClick={() => handleSetDefaultAddress(address.id)}
-                                className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-1.5 hover:bg-green-50 rounded-lg transition-colors"
                                 title="Set as Default"
                               >
-                                <Shield size={14} sm:size={16} className="text-green-600" />
+                                <Shield size={14} className="text-green-600" />
                               </button>
                             )}
-                            <button 
+                            <button
                               onClick={() => handleDeleteAddress(address.id)}
-                              className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete"
                             >
-                              <X size={14} sm:size={16} className="text-red-600" />
+                              <Trash2 size={14} className="text-red-600" />
                             </button>
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <p className="font-bold text-gray-800 text-xs sm:text-sm md:text-base">{address.fullName}</p>
-                          <p className="text-gray-600 text-xs sm:text-sm flex items-center gap-1">
-                            <span className="font-semibold">Phone:</span> {address.phone}
-                          </p>
-                          <div className="mt-2 p-2 bg-white rounded-lg border border-gray-200">
-                            <p className="text-gray-700 text-xs sm:text-sm">{address.addressLine1}</p>
-                            {address.addressLine2 && <p className="text-gray-700 text-xs sm:text-sm">{address.addressLine2}</p>}
-                            <p className="text-gray-600 text-xs sm:text-sm mt-1">{address.city}, {address.state} {address.zipCode}</p>
-                            <p className="text-gray-600 text-xs sm:text-sm flex items-center gap-1">
-                              <Globe size={12} />
-                              {address.country}
-                            </p>
+                          <p className="font-bold text-gray-800 text-xs sm:text-sm">{address.fullName || address.FullName}</p>
+                          <p className="text-gray-600 text-xs sm:text-sm">{address.phone || address.PhoneNumber}</p>
+                          <div className="mt-2 p-2 bg-white rounded-lg border border-blue-200">
+                            <p className="text-gray-700 text-xs sm:text-sm">{address.addressLine1 || address.AddressLine1}</p>
+                            {(address.addressLine2 || address.AddressLine2) && <p className="text-gray-700 text-xs sm:text-sm">{address.addressLine2 || address.AddressLine2}</p>}
+                            <p className="text-gray-600 text-xs sm:text-sm mt-1">{address.city || address.City}, {address.state || address.State} {address.zipCode || address.PinCode}</p>
+                            <p className="text-gray-600 text-xs sm:text-sm">{address.country || address.Country}</p>
                           </div>
                         </div>
                       </div>
@@ -1796,8 +1758,8 @@ const UserDashboard = () => {
                     <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Payment Methods</h2>
                     <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage your saved cards</p>
                   </div>
-                  <button 
-                    onClick={handleOpenPaymentModal}
+                  <button
+                    onClick={() => handleOpenPaymentModal()}
                     className="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-xs sm:text-sm flex items-center gap-1 w-full sm:w-auto justify-center hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
                   >
                     <Plus size={14} sm:size={16} />
@@ -1805,65 +1767,14 @@ const UserDashboard = () => {
                   </button>
                 </div>
 
-                {/* Payment Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-blue-600 p-2 rounded-lg shadow-md">
-                        <CreditCard size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Total</p>
-                        <p className="text-lg font-bold text-gray-800">{paymentMethods.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-green-600 p-2 rounded-lg shadow-md">
-                        <Shield size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Default</p>
-                        <p className="text-lg font-bold text-gray-800">{paymentMethods.filter(m => m.isDefault).length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-purple-600 p-2 rounded-lg shadow-md">
-                        <Calendar size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Expiring Soon</p>
-                        <p className="text-lg font-bold text-gray-800">{paymentMethods.filter(m => {
-                          const currentDate = new Date();
-                          const expiryDate = new Date(`${m.expiryYear}-${m.expiryMonth}-01`);
-                          const monthsUntilExpiry = (expiryDate.getFullYear() - currentDate.getFullYear()) * 12 + (expiryDate.getMonth() - currentDate.getMonth());
-                          return monthsUntilExpiry > 0 && monthsUntilExpiry <= 3;
-                        }).length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 border border-pink-200">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-pink-600 p-2 rounded-lg shadow-md">
-                        <Globe size={14} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Card Types</p>
-                        <p className="text-lg font-bold text-gray-800">{[...new Set(paymentMethods.map(m => m.cardType || 'Visa'))].length}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {paymentMethods.length === 0 ? (
                   <div className="text-center py-8 sm:py-12 text-gray-500">
-                    <CreditCard size={40} className="mx-auto mb-4 text-gray-300" />
+                    <div className="bg-green-100 p-4 rounded-full inline-block mb-4">
+                      <CreditCard size={40} className="text-green-600" />
+                    </div>
                     <p className="text-sm sm:text-base">No payment methods saved</p>
-                    <button 
-                      onClick={handleOpenPaymentModal}
+                    <button
+                      onClick={() => handleOpenPaymentModal()}
                       className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-sm hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
                     >
                       Add Your First Card
@@ -1872,21 +1783,33 @@ const UserDashboard = () => {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {paymentMethods.map((method) => (
-                      <div key={method.id} className={`bg-gradient-to-br from-gray-50 to-white rounded-xl p-3 sm:p-4 hover:shadow-xl transition-all border-2 ${
-                        method.isDefault ? 'border-purple-300 shadow-md' : 'border-gray-200 hover:border-purple-300'
+                      <div key={method.id} className={`bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 sm:p-4 hover:shadow-lg transition-all border-2 relative ${
+                        method.isDefault ? 'border-green-300 shadow-md' : 'border-green-200 hover:border-green-300'
                       }`}>
-                        <div className="flex justify-between items-start mb-3">
+                        {paymentActionId === method.id && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white p-1.5 rounded-full shadow-md animate-in fade-in zoom-in">
+                            <Check size={14} />
+                          </div>
+                        )}
+                        <div className="flex justify-between items-start mb-3 pr-8">
                           <div className="flex items-center gap-2">
-                            <div className={`p-2 rounded-lg ${method.isDefault ? 'bg-purple-600' : 'bg-purple-100'}`}>
-                              <CreditCard size={14} sm:size={16} className={method.isDefault ? 'text-white' : 'text-purple-600'} />
+                            <div className={`p-2 rounded-lg ${method.isDefault ? 'bg-green-600' : 'bg-green-100'}`}>
+                              <CreditCard size={14} sm:size={16} className={method.isDefault ? 'text-white' : 'text-green-600'} />
                             </div>
                             {method.isDefault && (
-                              <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm">Default</span>
+                              <span className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm">Default</span>
                             )}
                           </div>
                           <div className="flex gap-1 sm:gap-2">
+                            <button
+                              onClick={() => handleOpenPaymentModal(method)}
+                              className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <Edit size={14} sm:size={16} className="text-green-600" />
+                            </button>
                             {!method.isDefault && (
-                              <button 
+                              <button
                                 onClick={() => handleSetDefaultPayment(method.id)}
                                 className="p-2 hover:bg-green-50 rounded-lg transition-colors"
                                 title="Set as Default"
@@ -1894,20 +1817,20 @@ const UserDashboard = () => {
                                 <Shield size={14} sm:size={16} className="text-green-600" />
                               </button>
                             )}
-                            <button 
+                            <button
                               onClick={() => handleDeletePayment(method.id)}
                               className="p-2 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete"
                             >
-                              <X size={14} sm:size={16} className="text-red-600" />
+                              <Trash2 size={14} sm:size={16} className="text-red-600" />
                             </button>
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <div className="p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="p-3 bg-white rounded-lg border border-green-200">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-2 rounded-lg">
+                                <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-lg">
                                   <CreditCard size={14} className="text-white" />
                                 </div>
                                 <span className="font-bold text-gray-800 text-sm">{method.cardType || 'Visa'}</span>
@@ -1915,7 +1838,7 @@ const UserDashboard = () => {
                               <span className="text-xs text-gray-500">•••• {method.last4}</span>
                             </div>
                             <p className="text-gray-600 text-xs sm:text-sm flex items-center gap-1">
-                              <User size={12} />
+                              <Menu size={12} />
                               {method.cardHolder}
                             </p>
                             <p className="text-gray-600 text-xs sm:text-sm flex items-center gap-1">
@@ -1934,17 +1857,17 @@ const UserDashboard = () => {
             {activeTab === 'settings' && (
               <div className="space-y-4 sm:space-y-6">
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 rounded-2xl shadow-2xl p-6 sm:p-8 text-white animate-in fade-in duration-500">
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-lg p-6 sm:p-8 text-white">
                   <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border-4 border-white/30 hover:scale-110 transition-transform duration-300">
-                      <User size={32} sm:size={40} className="text-white" />
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border-4 border-white/30">
+                      <Menu size={32} sm:size={40} className="text-white" />
                     </div>
                     <div className="text-center sm:text-left">
                       <h2 className="text-2xl sm:text-3xl font-bold mb-1">{user?.fullName || 'User'}</h2>
                       <p className="text-purple-100 text-sm sm:text-base">{user?.email || 'user@example.com'}</p>
                       <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
                         {user?.isPremier && (
-                          <span className="bg-yellow-400 text-black text-xs px-3 py-1 rounded-full font-bold shadow-md animate-pulse">
+                          <span className="bg-yellow-400 text-black text-xs px-3 py-1 rounded-full font-bold shadow-md">
                             ⭐ Premier Member
                           </span>
                         )}
@@ -1956,59 +1879,11 @@ const UserDashboard = () => {
                   </div>
                 </div>
 
-                {/* Account Stats Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-5 border-2 border-blue-200 hover:shadow-xl hover:border-blue-300 hover:scale-105 transition-all duration-300 cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-                        <ShoppingBag size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Total Orders</p>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-800">{orders.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-5 border-2 border-green-200 hover:shadow-xl hover:border-green-300 hover:scale-105 transition-all duration-300 cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-                        <MapPin size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Addresses</p>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-800">{addresses.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-5 border-2 border-purple-200 hover:shadow-xl hover:border-purple-300 hover:scale-105 transition-all duration-300 cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-                        <CreditCard size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Payment Methods</p>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-800">{paymentMethods.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-5 border-2 border-pink-200 hover:shadow-xl hover:border-pink-300 hover:scale-105 transition-all duration-300 cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-pink-500 to-pink-600 p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-                        <Heart size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 font-medium">Wishlist</p>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-800">{wishlist.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Profile Information Section */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border-2 border-purple-200 hover:shadow-2xl hover:border-purple-300 transition-all duration-300 animate-in slide-in-from-bottom duration-500">
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg p-6 sm:p-8 border border-purple-200">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-xl shadow-lg">
-                      <User size={24} className="text-white" />
+                    <div className="bg-purple-600 p-3 rounded-xl shadow-md">
+                      <Menu size={24} className="text-white" />
                     </div>
                     <div>
                       <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Profile Information</h3>
@@ -2018,7 +1893,7 @@ const UserDashboard = () => {
                   <div className="space-y-5">
                     <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <User size={16} className="text-purple-600" />
+                        <Menu size={16} className="text-purple-600" />
                         Full Name
                       </label>
                       <div className="relative">
@@ -2034,7 +1909,7 @@ const UserDashboard = () => {
                         />
                       </div>
                       {settingsErrors.fullName && (
-                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3 animate-in fade-in duration-300">
+                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3">
                           <X size={16} className="text-red-600 flex-shrink-0" />
                           <p className="text-red-600 text-sm font-medium">{settingsErrors.fullName}</p>
                         </div>
@@ -2076,7 +1951,7 @@ const UserDashboard = () => {
                         />
                       </div>
                       {settingsErrors.phoneNumber && (
-                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3 animate-in fade-in duration-300">
+                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3">
                           <X size={16} className="text-red-600 flex-shrink-0" />
                           <p className="text-red-600 text-sm font-medium">{settingsErrors.phoneNumber}</p>
                         </div>
@@ -2086,7 +1961,7 @@ const UserDashboard = () => {
                   <div className="mt-6 pt-6 border-t-2 border-gray-200">
                     <button
                       onClick={handleSaveSettings}
-                      className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-105 hover:shadow-xl transform duration-300"
+                      className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg flex items-center justify-center gap-2"
                     >
                       <Shield size={20} />
                       Save Profile Changes
@@ -2095,9 +1970,9 @@ const UserDashboard = () => {
                 </div>
 
                 {/* Password Change Section */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border-2 border-red-200 hover:shadow-2xl hover:border-red-300 transition-all duration-300 animate-in slide-in-from-bottom duration-500 delay-100">
+                <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl shadow-lg p-6 sm:p-8 border border-red-200">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-gradient-to-br from-red-500 to-orange-500 p-3 rounded-xl shadow-lg">
+                    <div className="bg-red-600 p-3 rounded-xl shadow-md">
                       <Shield size={24} className="text-white" />
                     </div>
                     <div>
@@ -2121,7 +1996,7 @@ const UserDashboard = () => {
                         />
                       </div>
                       {passwordErrors.currentPassword && (
-                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3 animate-in fade-in duration-300">
+                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3">
                           <X size={16} className="text-red-600 flex-shrink-0" />
                           <p className="text-red-600 text-sm font-medium">{passwordErrors.currentPassword}</p>
                         </div>
@@ -2142,7 +2017,7 @@ const UserDashboard = () => {
                         />
                       </div>
                       {passwordErrors.newPassword && (
-                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3 animate-in fade-in duration-300">
+                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3">
                           <X size={16} className="text-red-600 flex-shrink-0" />
                           <p className="text-red-600 text-sm font-medium">{passwordErrors.newPassword}</p>
                         </div>
@@ -2163,7 +2038,7 @@ const UserDashboard = () => {
                         />
                       </div>
                       {passwordErrors.confirmPassword && (
-                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3 animate-in fade-in duration-300">
+                        <div className="flex items-center gap-2 mt-2 bg-red-50 border-2 border-red-200 rounded-xl p-3">
                           <X size={16} className="text-red-600 flex-shrink-0" />
                           <p className="text-red-600 text-sm font-medium">{passwordErrors.confirmPassword}</p>
                         </div>
@@ -2173,7 +2048,7 @@ const UserDashboard = () => {
                   <div className="mt-6 pt-6 border-t-2 border-gray-200">
                     <button
                       onClick={handlePasswordChange}
-                      className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-red-700 hover:to-orange-700 transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-105 hover:shadow-xl transform duration-300"
+                      className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-red-700 hover:to-orange-700 transition-all shadow-lg flex items-center justify-center gap-2"
                     >
                       <Shield size={20} />
                       Change Password
@@ -2182,9 +2057,9 @@ const UserDashboard = () => {
                 </div>
 
                 {/* Preferences Section */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border-2 border-gray-200 hover:shadow-2xl hover:border-gray-300 transition-all duration-300 animate-in slide-in-from-bottom duration-500 delay-200">
+                <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl shadow-lg p-6 sm:p-8 border border-gray-200">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-gradient-to-br from-gray-500 to-gray-600 p-3 rounded-xl shadow-lg">
+                    <div className="bg-gray-600 p-3 rounded-xl shadow-md">
                       <Settings size={24} className="text-white" />
                     </div>
                     <div>
@@ -2193,9 +2068,9 @@ const UserDashboard = () => {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border-2 border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 group">
                       <div className="flex items-center gap-3">
-                        <div className="bg-purple-100 p-2 rounded-lg group-hover:scale-110 transition-transform">
+                        <div className="bg-purple-100 p-2 rounded-lg">
                           <Mail size={20} className="text-purple-600" />
                         </div>
                         <div>
@@ -2204,18 +2079,18 @@ const UserDashboard = () => {
                         </div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={preferences.emailNotifications}
                           onChange={() => handlePreferenceChange('emailNotifications')}
                         />
                         <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-pink-600"></div>
                       </label>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border-2 border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 group">
                       <div className="flex items-center gap-3">
-                        <div className="bg-purple-100 p-2 rounded-lg group-hover:scale-110 transition-transform">
+                        <div className="bg-purple-100 p-2 rounded-lg">
                           <Phone size={20} className="text-purple-600" />
                         </div>
                         <div>
@@ -2224,18 +2099,18 @@ const UserDashboard = () => {
                         </div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={preferences.smsNotifications}
                           onChange={() => handlePreferenceChange('smsNotifications')}
                         />
                         <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-pink-600"></div>
                       </label>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border-2 border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 group">
+                    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 group">
                       <div className="flex items-center gap-3">
-                        <div className="bg-purple-100 p-2 rounded-lg group-hover:scale-110 transition-transform">
+                        <div className="bg-purple-100 p-2 rounded-lg">
                           <Shield size={20} className="text-purple-600" />
                         </div>
                         <div>
@@ -2244,9 +2119,9 @@ const UserDashboard = () => {
                         </div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={preferences.twoFactorAuth}
                           onChange={() => handlePreferenceChange('twoFactorAuth')}
                         />
@@ -2257,7 +2132,7 @@ const UserDashboard = () => {
                   <div className="mt-6 pt-6 border-t-2 border-gray-200">
                     <button
                       onClick={handleSavePreferences}
-                      className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-105 hover:shadow-xl transform duration-300"
+                      className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-semibold text-sm sm:text-base hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg flex items-center justify-center gap-2"
                     >
                       <Settings size={20} />
                       Save Preferences
@@ -2269,35 +2144,33 @@ const UserDashboard = () => {
 
             {/* Address Modal */}
             {showAddressModal && (
-              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-0 sm:mx-0">
-                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-3 sm:p-4 md:p-6 rounded-t-2xl">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm">
-                          <MapPin size={16} sm:size={20} md:size={24} className="text-white" />
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto mx-0 sm:mx-0">
+                  <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-4 rounded-t-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white/20 p-2 rounded-lg">
+                          <MapPin size={20} className="text-white" />
                         </div>
-                        <div>
-                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white">
-                            {editingAddress ? 'Edit Address' : 'Add Address'}
-                          </h3>
-                          <p className="text-purple-100 text-xs sm:text-sm">
-                            {editingAddress ? 'Update saved address' : 'Add new delivery address'}
-                          </p>
-                        </div>
+                        <h3 className="text-lg font-bold text-white">
+                          {editingAddress ? 'Edit Address' : 'Add Address'}
+                        </h3>
                       </div>
-                      <button 
+                      <button
                         onClick={handleCloseAddressModal}
-                        className="bg-white/20 hover:bg-white/30 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm transition-all flex-shrink-0"
+                        className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-all"
                       >
-                        <X size={16} sm:size={18} md:size={20} className="text-white" />
+                        <X size={18} className="text-white" />
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+
+                  <div className="p-4 space-y-3">
                     <div>
-                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                        <Menu size={16} className="text-purple-600" />
+                        Full Name
+                      </label>
                       <input
                         type="text"
                         value={addressForm.fullName}
@@ -2306,7 +2179,7 @@ const UserDashboard = () => {
                         onMouseOut={() => validateAddressField('fullName', addressForm.fullName)}
                         onKeyDown={(e) => e.key === 'Tab' && validateAddressField('fullName', addressForm.fullName)}
                         maxLength={100}
-                        className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.fullName ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.fullName ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                       />
                       {addressErrors.fullName && (
                       <div className="flex items-center gap-2 mt-1 bg-red-50 border border-red-200 rounded-lg p-2">
@@ -2316,7 +2189,10 @@ const UserDashboard = () => {
                     )}
                     </div>
                     <div>
-                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                        <Phone size={16} className="text-green-600" />
+                        Phone Number
+                      </label>
                       <input
                         type="tel"
                         value={addressForm.phone}
@@ -2325,7 +2201,7 @@ const UserDashboard = () => {
                         onMouseOut={() => validateAddressField('phone', addressForm.phone)}
                         onKeyDown={(e) => e.key === 'Tab' && validateAddressField('phone', addressForm.phone)}
                         maxLength={10}
-                        className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                       />
                       {addressErrors.phone && (
                       <div className="flex items-center gap-2 mt-1 bg-red-50 border border-red-200 rounded-lg p-2">
@@ -2335,7 +2211,10 @@ const UserDashboard = () => {
                     )}
                     </div>
                     <div>
-                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Address Line 1</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                        <MapPin size={16} className="text-red-600" />
+                        Address Line 1
+                      </label>
                       <input
                         type="text"
                         value={addressForm.addressLine1}
@@ -2344,7 +2223,7 @@ const UserDashboard = () => {
                         onMouseOut={() => validateAddressField('addressLine1', addressForm.addressLine1)}
                         onKeyDown={(e) => e.key === 'Tab' && validateAddressField('addressLine1', addressForm.addressLine1)}
                         maxLength={200}
-                        className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.addressLine1 ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.addressLine1 ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                         placeholder="Street address, apartment, etc."
                       />
                       {addressErrors.addressLine1 && (
@@ -2355,7 +2234,10 @@ const UserDashboard = () => {
                     )}
                     </div>
                     <div>
-                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Address Line 2</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                        <MapPin size={16} className="text-orange-600" />
+                        Address Line 2
+                      </label>
                       <input
                         type="text"
                         value={addressForm.addressLine2}
@@ -2364,7 +2246,7 @@ const UserDashboard = () => {
                         onMouseOut={() => validateAddressField('addressLine2', addressForm.addressLine2)}
                         onKeyDown={(e) => e.key === 'Tab' && validateAddressField('addressLine2', addressForm.addressLine2)}
                         maxLength={200}
-                        className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.addressLine2 ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.addressLine2 ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                         placeholder="Apartment, suite, etc. (optional)"
                       />
                       {addressErrors.addressLine2 && (
@@ -2374,9 +2256,12 @@ const UserDashboard = () => {
                       </div>
                     )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">City</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                          <MapPin size={16} className="text-blue-600" />
+                          City
+                        </label>
                         <input
                           type="text"
                           value={addressForm.city}
@@ -2385,7 +2270,7 @@ const UserDashboard = () => {
                           onMouseOut={() => validateAddressField('city', addressForm.city)}
                           onKeyDown={(e) => e.key === 'Tab' && validateAddressField('city', addressForm.city)}
                           maxLength={100}
-                          className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.city ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.city ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                         />
                         {addressErrors.city && (
                       <div className="flex items-center gap-2 mt-1 bg-red-50 border border-red-200 rounded-lg p-2">
@@ -2395,7 +2280,10 @@ const UserDashboard = () => {
                     )}
                       </div>
                       <div>
-                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">State</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                          <MapPin size={16} className="text-indigo-600" />
+                          State
+                        </label>
                         <input
                           type="text"
                           value={addressForm.state}
@@ -2404,7 +2292,7 @@ const UserDashboard = () => {
                           onMouseOut={() => validateAddressField('state', addressForm.state)}
                           onKeyDown={(e) => e.key === 'Tab' && validateAddressField('state', addressForm.state)}
                           maxLength={100}
-                          className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.state ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.state ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                         />
                         {addressErrors.state && (
                       <div className="flex items-center gap-2 mt-1 bg-red-50 border border-red-200 rounded-lg p-2">
@@ -2414,9 +2302,12 @@ const UserDashboard = () => {
                     )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">ZIP Code</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                          <MapPin size={16} className="text-teal-600" />
+                          ZIP Code
+                        </label>
                         <input
                           type="text"
                           value={addressForm.zipCode}
@@ -2425,7 +2316,7 @@ const UserDashboard = () => {
                           onMouseOut={() => validateAddressField('zipCode', addressForm.zipCode)}
                           onKeyDown={(e) => e.key === 'Tab' && validateAddressField('zipCode', addressForm.zipCode)}
                           maxLength={6}
-                          className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                         />
                         {addressErrors.zipCode && (
                       <div className="flex items-center gap-2 mt-1 bg-red-50 border border-red-200 rounded-lg p-2">
@@ -2435,7 +2326,10 @@ const UserDashboard = () => {
                     )}
                       </div>
                       <div>
-                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Country</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                          <Globe size={16} className="text-cyan-600" />
+                          Country
+                        </label>
                         <input
                           type="text"
                           value={addressForm.country}
@@ -2444,7 +2338,7 @@ const UserDashboard = () => {
                           onMouseOut={() => validateAddressField('country', addressForm.country)}
                           onKeyDown={(e) => e.key === 'Tab' && validateAddressField('country', addressForm.country)}
                           maxLength={100}
-                          className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg focus:outline-none text-sm ${addressErrors.country ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none text-sm shadow-sm ${addressErrors.country ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-purple-500'}`}
                         />
                         {addressErrors.country && (
                       <div className="flex items-center gap-2 mt-1 bg-red-50 border border-red-200 rounded-lg p-2">
@@ -2462,20 +2356,20 @@ const UserDashboard = () => {
                         onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
                         className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                       />
-                      <label htmlFor="defaultAddress" className="text-xs sm:text-sm font-medium text-gray-700">Set as default address</label>
+                      <label htmlFor="defaultAddress" className="text-sm font-medium text-gray-700">Set as default address</label>
                     </div>
                   </div>
-                  
-                  <div className="p-3 sm:p-4 md:p-6 border-t flex gap-2 sm:gap-3">
+
+                  <div className="p-4 border-t flex gap-3">
                     <button
                       onClick={handleCloseAddressModal}
-                      className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-xs sm:text-sm"
+                      className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSaveAddress}
-                      className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg text-xs sm:text-sm"
+                      className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md text-sm"
                     >
                       {editingAddress ? 'Update' : 'Save'}
                     </button>
@@ -2484,31 +2378,100 @@ const UserDashboard = () => {
               </div>
             )}
 
-            {/* Payment Modal */}
-            {showPaymentModal && (
-              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 mx-0 sm:mx-0">
-                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-3 sm:p-4 md:p-6 rounded-t-2xl">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm">
-                          <CreditCard size={16} sm:size={20} md:size={24} className="text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white">Add Payment Method</h3>
-                          <p className="text-purple-100 text-xs sm:text-sm">Add new credit or debit card</p>
-                        </div>
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirmModal && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-0">
+                  <div className="bg-gradient-to-r from-red-500 to-orange-500 p-4 rounded-t-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-white/20 p-2 rounded-lg">
+                        <AlertTriangle size={24} className="text-white" />
                       </div>
-                      <button 
-                        onClick={handleClosePaymentModal}
-                        className="bg-white/20 hover:bg-white/30 p-1.5 sm:p-2 rounded-xl backdrop-blur-sm transition-all flex-shrink-0"
+                      <h3 className="text-lg font-bold text-white">Delete Address</h3>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <p className="text-gray-700 text-sm mb-4">Are you sure you want to delete this address? This action cannot be undone.</p>
+
+                    <div className="p-4 border-t flex gap-3">
+                      <button
+                        onClick={cancelDeleteAddress}
+                        className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm"
                       >
-                        <X size={16} sm:size={18} md:size={20} className="text-white" />
+                        Cancel
+                      </button>
+                      <button
+                        onClick={confirmDeleteAddress}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg font-semibold hover:from-red-600 hover:to-orange-600 transition-all shadow-md text-sm"
+                      >
+                        Delete
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+                </div>
+              </div>
+            )}
+
+            {/* Payment Delete Confirmation Modal */}
+            {showPaymentDeleteConfirmModal && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-0">
+                  <div className="bg-gradient-to-r from-red-500 to-orange-500 p-4 rounded-t-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-white/20 p-2 rounded-lg">
+                        <AlertTriangle size={24} className="text-white" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white">Delete Payment Method</h3>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <p className="text-gray-700 text-sm mb-4">Are you sure you want to delete this payment method? This action cannot be undone.</p>
+
+                    <div className="p-4 border-t flex gap-3">
+                      <button
+                        onClick={cancelDeletePayment}
+                        className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={confirmDeletePayment}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg font-semibold hover:from-red-600 hover:to-orange-600 transition-all shadow-md text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Modal */}
+            {showPaymentModal && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto mx-0 sm:mx-0">
+                  <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-4 rounded-t-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white/20 p-2 rounded-lg">
+                          <CreditCard size={20} className="text-white" />
+                        </div>
+                        <h3 className="text-lg font-bold text-white">
+                          {editingPaymentMethod ? 'Edit Payment Method' : 'Add Payment Method'}
+                        </h3>
+                      </div>
+                      <button
+                        onClick={handleClosePaymentModal}
+                        className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-all"
+                      >
+                        <X size={18} className="text-white" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 space-y-3">
                     <div>
                       <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Card Number</label>
                       <input
@@ -2638,7 +2601,7 @@ const UserDashboard = () => {
                       onClick={handleSavePayment}
                       className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg text-xs sm:text-sm"
                     >
-                      Add Card
+                      {editingPaymentMethod ? 'Update' : 'Save'}
                     </button>
                   </div>
                 </div>

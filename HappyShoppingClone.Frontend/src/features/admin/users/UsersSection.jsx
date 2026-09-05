@@ -1,4 +1,4 @@
-import { Plus, Edit, Trash2, Shield, Power, Users, Search, Filter, MoreVertical, Crown, UserCheck, UserX, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Power, Users, Search, Filter, MoreVertical, Crown, Menu, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
 const UsersSection = ({ users, userFilter, setUserFilter, userModalRef, onDeleteUser }) => {
@@ -106,7 +106,7 @@ const UsersSection = ({ users, userFilter, setUserFilter, userModalRef, onDelete
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-purple-100">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="bg-green-100 p-2 rounded-xl shrink-0">
-                <UserCheck size={18} sm:size={20} className="text-green-600" />
+                <Menu size={18} sm:size={20} className="text-green-600" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-800">{users.filter(u => u.isActive).length}</p>
@@ -117,7 +117,7 @@ const UsersSection = ({ users, userFilter, setUserFilter, userModalRef, onDelete
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-purple-100">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="bg-red-100 p-2 rounded-xl shrink-0">
-                <UserX size={18} sm:size={20} className="text-red-600" />
+                <Menu size={18} sm:size={20} className="text-red-600" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-800">{users.filter(u => !u.isActive).length}</p>
@@ -247,7 +247,7 @@ const UsersSection = ({ users, userFilter, setUserFilter, userModalRef, onDelete
                         : 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200'
                     }`}
                   >
-                    {user.isActive ? <UserCheck size={10} sm:size={12} /> : <UserX size={10} sm:size={12} />}
+                    {user.isActive ? <Menu size={10} sm:size={12} /> : <Menu size={10} sm:size={12} />}
                     <span className="hidden sm:inline">{user.isActive ? 'Active' : 'Inactive'}</span>
                   </button>
                 </td>

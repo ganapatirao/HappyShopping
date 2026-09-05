@@ -1,5 +1,5 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { X, Users, AlertCircle, Crown, Shield, UserCheck, UserX, Sparkles } from 'lucide-react';
+import { X, Users, AlertCircle, Crown, Shield, Menu, Sparkles } from 'lucide-react';
 import { authAPI, userAPI } from '../../../services/api';
 
 const UserModal = forwardRef(({ onSuccess, showToast }, ref) => {
@@ -225,7 +225,7 @@ const UserModal = forwardRef(({ onSuccess, showToast }, ref) => {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="bg-white/20 p-2 sm:p-3 rounded-2xl backdrop-blur-sm border border-white/30 shadow-lg shrink-0">
-                  {editingUser ? <UserCheck size={20} sm:size={24} className="text-white" /> : <Sparkles size={20} sm:size={24} className="text-white" />}
+                  {editingUser ? <Menu size={20} sm:size={24} className="text-white" /> : <Sparkles size={20} sm:size={24} className="text-white" />}
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight">
@@ -297,7 +297,7 @@ const UserModal = forwardRef(({ onSuccess, showToast }, ref) => {
           </div>
           <div>
             <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 sm:mb-2 flex items-center gap-2">
-              <UserCheck size={14} sm:size={16} className="text-purple-600" />
+              <Menu size={14} sm:size={16} className="text-purple-600" />
               Phone Number
             </label>
             <input
@@ -369,7 +369,7 @@ const UserModal = forwardRef(({ onSuccess, showToast }, ref) => {
               className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 rounded focus:ring-purple-500 focus:ring-offset-0 cursor-pointer shrink-0"
             />
             <label htmlFor="userActive" className="text-xs sm:text-sm font-bold text-gray-700 cursor-pointer flex items-center gap-2">
-              {userForm.isActive ? <UserCheck size={14} sm:size={16} className="text-green-600" /> : <UserX size={14} sm:size={16} className="text-red-600" />}
+              {userForm.isActive ? <Menu size={14} sm:size={16} className="text-green-600" /> : <Menu size={14} sm:size={16} className="text-red-600" />}
               Active Status
             </label>
           </div>

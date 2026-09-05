@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, ShoppingBag, User, Menu, Heart, Download, LogOut } from 'lucide-react';
+import { Search, ShoppingBag, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
 import { siteConfigAPI } from '../../../services/api';
@@ -9,7 +9,7 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const { user, isAuthenticated, logout, isAdmin } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { cartCount } = useCart();
   const [config, setConfig] = useState({
     site: {
@@ -69,13 +69,6 @@ const Header = () => {
       <div className="container mx-auto px-4">
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between py-3">
-          <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`${config.header?.textColor || '#FFFFFF'} p-2 rounded-lg hover:bg-white/10 transition-all`}
-            style={{ color: config.header?.textColor || '#FFFFFF' }}
-          >
-            <Menu size={24} />
-          </button>
           <div className="flex items-center gap-2">
             {config.header?.logoBase64 && (
               <img src={config.header.logoBase64} alt={config.site?.name || 'HappyShopping'} className="h-10 object-contain" />
@@ -84,7 +77,7 @@ const Header = () => {
           </div>
           <div className="flex items-center gap-2">
             {config.header?.showSearchIcon && (
-              <button 
+              <button
                 onClick={() => setMobileSearchOpen(true)}
                 className="p-2 rounded-lg hover:bg-white/10 transition-all"
                 style={{ color: config.header?.textColor || '#FFFFFF' }}
@@ -103,7 +96,7 @@ const Header = () => {
               </a>
             )}
             {config.header?.showLoginIcon && (
-              <a href={isAuthenticated ? (isAdmin ? '/admin' : '/dashboard') : '/login'} className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: config.header?.textColor || '#FFFFFF' }}>
+              <a href={isAuthenticated ? '/dashboard' : '/login'} className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: config.header?.textColor || '#FFFFFF' }}>
                 <User size={20} />
               </a>
             )}
@@ -140,15 +133,9 @@ const Header = () => {
             {config.header?.showLoginIcon && (
               isAuthenticated ? (
                 <div className="flex items-center gap-3">
-                  {isAdmin ? (
-                    <a href="/admin" className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: config.header?.textColor || '#FFFFFF' }}>
-                      <User size={22} />
-                    </a>
-                  ) : (
-                    <a href="/dashboard" className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: config.header?.textColor || '#FFFFFF' }}>
-                      <User size={22} />
-                    </a>
-                  )}
+                  <a href="/dashboard" className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: config.header?.textColor || '#FFFFFF' }}>
+                    <User size={22} />
+                  </a>
                   {user?.isPremier && (
                     <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
                       ⭐ Premier
@@ -185,7 +172,7 @@ const Header = () => {
                 </div>
                 <span className="font-bold text-gray-800 text-lg">Search</span>
               </div>
-              <button 
+              <button
                 onClick={() => setMobileSearchOpen(false)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-all text-gray-500 hover:text-gray-700"
               >
@@ -196,69 +183,6 @@ const Header = () => {
               </button>
             </div>
             <SearchAutocomplete onSearch={handleSearchButtonClick} />
-          </div>
-        )}
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white rounded-lg mt-2 p-4 shadow-lg">
-            <div className="flex flex-col gap-4">
-              {config.header?.showCartIcon && (
-                <a href="/cart" className="flex items-center gap-2 text-gray-700 hover:text-purple-600 py-2 px-3 rounded-lg hover:bg-purple-50">
-                  <ShoppingBag size={18} />
-                  <span>Cart</span>
-                  {cartCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                      {cartCount}
-                    </span>
-                  )}
-                </a>
-              )}
-              {isAuthenticated ? (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                      {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div>
-                      <span className="font-semibold text-gray-800">{user?.fullName || 'User'}</span>
-                      <p className="text-xs text-gray-600">{user?.email || ''}</p>
-                      {user?.isPremier && (
-                        <span className="inline-block mt-1 bg-yellow-400 text-black px-2 py-0.5 rounded-full text-xs font-semibold">
-                          ⭐ Premier
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {isAdmin ? (
-                    <a href="/admin" className="flex items-center gap-2 text-gray-700 hover:text-purple-600 py-2 px-3 rounded-lg hover:bg-purple-50">
-                      <User size={18} />
-                      <span>Admin Dashboard</span>
-                    </a>
-                  ) : (
-                    <a href="/dashboard" className="flex items-center gap-2 text-gray-700 hover:text-purple-600 py-2 px-3 rounded-lg hover:bg-purple-50">
-                      <User size={18} />
-                      <span>My Dashboard</span>
-                    </a>
-                  )}
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      logout();
-                      setMobileMenuOpen(false);
-                      window.location.href = '/';
-                    }}
-                    className="flex items-center gap-2 text-red-600 font-semibold py-2 px-3 rounded-lg hover:bg-red-50"
-                  >
-                    <span>Logout</span>
-                  </button>
-                </div>
-              ) : (
-                <a href="/login" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold">
-                  Login / Register
-                </a>
-              )}
-            </div>
           </div>
         )}
       </div>
